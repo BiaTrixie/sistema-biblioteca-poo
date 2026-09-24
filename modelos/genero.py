@@ -1,31 +1,23 @@
 class Genero:
-    def __init__(self, id: int, nome: str) -> None:
-        self.__id = self.__validar_id(id)
-        self.__nome = self.__validar_nome(nome)
+    def __init__(self, id, nome):
+        self.__id = id
+        self.__nome = nome
 
     @property
-    def id(self) -> int:
+    def id(self):
         return self.__id
 
+    @id.setter
+    def id(self, id):
+        self.__id = id
+
     @property
-    def nome(self) -> str:
+    def nome(self):
         return self.__nome
 
-    def atualizar_nome(self, nome: str) -> None:
-        self.__nome = self.__validar_nome(nome)
+    @nome.setter
+    def nome(self, nome):
+        self.__nome = nome
 
-    def __validar_id(self, id: int) -> int:
-        if isinstance(id, bool) or not isinstance(id, int) or id < 1:
-            raise ValueError("id inválido")
-        return id
-
-    def __validar_nome(self, nome: str) -> str:
-        if not isinstance(nome, str):
-            raise ValueError("nome do gênero é obrigatório")
-        nome_limpo = nome.strip()
-        if not nome_limpo:
-            raise ValueError("nome do gênero é obrigatório")
-        return nome_limpo
-
-    def __str__(self) -> str:
+    def __str__(self):
         return f"[{self.__id}] {self.__nome}"
