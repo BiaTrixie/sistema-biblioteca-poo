@@ -1,10 +1,5 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from modelos.livro import Livro
-    from modelos.usuario import Usuario
+from modelos.livro import Livro
+from modelos.usuario import Usuario
 
 
 class Estante:
