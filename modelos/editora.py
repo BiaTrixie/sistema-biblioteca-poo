@@ -20,6 +20,8 @@ class Editora:
         self.__autores.append(autora)
 
     def remover_autora(self, autora: "Autora") -> None:
+        if autora not in self.__autores:
+            raise ValueError("autora não vinculada a esta editora")
         self.__autores.remove(autora)
 
     def __validar_nome(self, nome: str) -> str:
