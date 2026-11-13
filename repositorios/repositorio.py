@@ -1,5 +1,20 @@
 from abc import ABC, abstractmethod
 
+from modelos.autora import Autora
+from modelos.avaliacao import Avaliacao
+from modelos.comentario import Comentario
+from modelos.editora import Editora
+from modelos.estante import Estante
+from modelos.genero import Genero
+from modelos.livro import Livro
+from modelos.usuario import Usuario
+
+# em qual lista (ou tabela) cada tipo de objeto é guardado
+COLECAO_DE = {
+    Usuario: "usuarios", Genero: "generos", Editora: "editoras", Autora: "autoras",
+    Livro: "livros", Estante: "estantes", Avaliacao: "avaliacoes", Comentario: "comentarios",
+}
+
 
 class Repositorio(ABC):
     """DAO: o contrato de acesso aos dados. Os serviços só conhecem esta interface,

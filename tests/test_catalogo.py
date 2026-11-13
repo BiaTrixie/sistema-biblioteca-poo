@@ -1,13 +1,13 @@
 import unittest
 from datetime import date, timedelta
 
-from repositorios.semente import criar_repositorio
+from tests.fabricas import repo_memoria, repo_sqlite
 from servicos.catalogo_service import CatalogoService
 
 
-class TesteCatalogo(unittest.TestCase):
+class TesteCatalogo:  # os testes; abaixo rodam uma vez com cada repositório
     def setUp(self):
-        self.catalogo = CatalogoService(criar_repositorio())
+        self.catalogo = CatalogoService(self.criar_repo())
 
     def nomes(self, livros):
         return [livro.nome for livro in livros]
@@ -33,10 +33,18 @@ class TesteCatalogo(unittest.TestCase):
 
     def test_livro_do_dia_muda_a_cada_dia(self):  # R17
         hoje = date(2026, 11, 13)
-        self.assertIs(self.catalogo.livro_do_dia(hoje), self.catalogo.livro_do_dia(hoje))
+        self.assertEqual(self.catalogo.livro_do_dia(hoje).id, self.catalogo.livro_do_dia(hoje).id)
         amanha = self.catalogo.livro_do_dia(hoje + timedelta(days=1))
-        self.assertIsNot(self.catalogo.livro_do_dia(hoje), amanha)
-        self.assertIn(amanha, self.catalogo.listar())
+        self.assertNotEqual(self.catalogo.livro_do_dia(hoje).id, amanha.id)
+        self.assertIn(amanha.id, [l.id for l in self.catalogo.listar()])
+
+
+class TesteCatalogoMemoria(TesteCatalogo, unittest.TestCase):
+    criar_repo = staticmethod(repo_memoria)
+
+
+class TesteCatalogoSQLite(TesteCatalogo, unittest.TestCase):
+    criar_repo = staticmethod(repo_sqlite)
 
 
 if __name__ == "__main__":

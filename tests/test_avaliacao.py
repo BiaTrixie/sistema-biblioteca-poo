@@ -1,13 +1,13 @@
 import unittest
 
-from repositorios.semente import criar_repositorio
+from tests.fabricas import repo_memoria, repo_sqlite
 from servicos.avaliacao_service import AvaliacaoService
 from servicos.catalogo_service import CatalogoService
 
 
-class TesteAvaliacao(unittest.TestCase):
+class TesteAvaliacao:  # os testes; abaixo rodam uma vez com cada repositório
     def setUp(self):
-        self.repo = criar_repositorio()
+        self.repo = self.criar_repo()
         self.avaliacoes = AvaliacaoService(self.repo)
         self.catalogo = CatalogoService(self.repo)
         self.ana = self.repo.buscar_usuario(1)
@@ -32,7 +32,7 @@ class TesteAvaliacao(unittest.TestCase):
     def test_comentar(self):  # R15
         comentario = self.avaliacoes.comentar(self.beto, self.hobbit, "Muito bom")
         _, comentarios = self.avaliacoes.do_livro(self.hobbit)
-        self.assertIn(comentario, comentarios)
+        self.assertIn(comentario.id, [c.id for c in comentarios])
         with self.assertRaises(ValueError):
             self.avaliacoes.comentar(self.beto, self.hobbit, "   ")
 
@@ -44,6 +44,14 @@ class TesteAvaliacao(unittest.TestCase):
         diario = self.avaliacoes.diario_recente()
         datas = [item.data for _, item in diario]
         self.assertEqual(datas, sorted(datas, reverse=True))
+
+
+class TesteAvaliacaoMemoria(TesteAvaliacao, unittest.TestCase):
+    criar_repo = staticmethod(repo_memoria)
+
+
+class TesteAvaliacaoSQLite(TesteAvaliacao, unittest.TestCase):
+    criar_repo = staticmethod(repo_sqlite)
 
 
 if __name__ == "__main__":

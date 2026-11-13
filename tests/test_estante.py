@@ -1,12 +1,12 @@
 import unittest
 
-from repositorios.semente import criar_repositorio
+from tests.fabricas import repo_memoria, repo_sqlite
 from servicos.estante_service import EstanteService
 
 
-class TesteEstante(unittest.TestCase):
+class TesteEstante:  # os testes; abaixo rodam uma vez com cada repositório
     def setUp(self):
-        self.repo = criar_repositorio()
+        self.repo = self.criar_repo()
         self.estante = EstanteService(self.repo)
         self.ana = self.repo.buscar_usuario(1)
         self.beto = self.repo.buscar_usuario(2)
@@ -40,6 +40,14 @@ class TesteEstante(unittest.TestCase):
     def test_filtro_invalido(self):
         with self.assertRaises(ValueError):
             self.estante.listar(self.ana, "inexistente")
+
+
+class TesteEstanteMemoria(TesteEstante, unittest.TestCase):
+    criar_repo = staticmethod(repo_memoria)
+
+
+class TesteEstanteSQLite(TesteEstante, unittest.TestCase):
+    criar_repo = staticmethod(repo_sqlite)
 
 
 if __name__ == "__main__":
