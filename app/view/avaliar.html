@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Avaliar {{ livro.nome }} — estante{% endblock %}
+{% block conteudo %}
+<form class="formulario centralizado" method="post">
+  <p class="rotulo">Avaliar</p>
+  <h1>{{ livro.nome }}</h1>
+  <p class="mudo">{{ livro.autora.nome }} · {{ livro.ano }} · {{ livro.genero.nome }}</p>
+
+  <div class="seletor-nota">
+    {% for n in range(1, 6) %}
+    <label><input type="radio" name="nota" value="{{ n }}" {{ 'checked' if n == (anterior.nota if anterior else 5) }}>{{ n }} ★</label>
+    {% endfor %}
+  </div>
+
+  <label>Comentário da nota
+    <textarea name="texto" rows="4">{{ anterior.comentario if anterior else '' }}</textarea>
+  </label>
+  <p class="mudo pequeno">A nota vai de 1 a 5. Uma avaliação por pessoa: avaliar de novo substitui a anterior.</p>
+  <button class="botao verde">Publicar avaliação</button>
+</form>
+{% endblock %}

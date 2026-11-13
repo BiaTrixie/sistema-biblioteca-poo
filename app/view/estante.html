@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import capa %}
+{% block titulo %}Minha estante — estante{% endblock %}
+{% block conteudo %}
+<div class="cabecalho-estante">
+  <div><h3 class="rotulo">Minha estante</h3><h1>{{ usuario.nome }}</h1></div>
+  <div class="contadores solto">
+    <div><b>{{ resumo.total }}</b>total</div>
+    <div><b>{{ resumo.favoritos }}</b>favoritos</div>
+    <div><b>{{ resumo.quero_ler }}</b>quero ler</div>
+  </div>
+</div>
+
+<nav class="pilulas">
+  {% for chave, nome in [('todos', 'Todos'), ('lidos', 'Lidos'), ('favoritos', 'Favoritos'), ('quero-ler', 'Quero ler')] %}
+  <a class="{{ 'ativa' if filtro == chave }}" href="{{ url_for('estante', filtro=chave) }}">{{ nome }}</a>
+  {% endfor %}
+</nav>
+
+<div class="prateleira">
+  {% for r in registros %}
+  <div>
+    {{ capa(r.livro) }}
+    <p class="marcas">
+      {% if r.lido %}<span class="verde">lido</span>{% endif %}
+      {% if r.favorito %}<span class="laranja">favorito</span>{% endif %}
+      {% if r.quer_ler %}<span class="laranja">quero ler</span>{% endif %}
+    </p>
+  </div>
+  {% else %}
+  <p class="mudo">Nenhum livro aqui ainda.</p>
+  {% endfor %}
+</div>
+{% endblock %}

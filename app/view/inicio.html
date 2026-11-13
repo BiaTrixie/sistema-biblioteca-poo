@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import capa, estrelas %}
+{% block conteudo %}
+<h3 class="rotulo">Populares esta semana</h3>
+<div class="prateleira">
+  {% for livro in populares %}
+  <div>{{ capa(livro) }}<p class="nota">{{ estrelas(media(livro)) }} <span class="mudo">{{ livro.ano }}</span></p></div>
+  {% endfor %}
+</div>
+
+<div class="duas-colunas">
+  <section class="cartao">
+    <h2>Diário recente</h2>
+    {% for tipo, item in diario %}
+    <div class="evento">
+      <span class="miniatura cor{{ item.livro.id % 6 }}"></span>
+      <div>
+        <strong>{{ item.usuario.nome }} {{ tipo }} <a href="{{ url_for('livro', id_livro=item.livro.id) }}">{{ item.livro.nome }}</a>
+          {% if tipo == 'avaliou' %}· <span class="estrelas">{{ '★' * item.nota }}</span>
+          {% else %}· {{ item.numero_likes }} curtidas{% endif %}</strong>
+        <p>{{ item.comentario if tipo == 'avaliou' else item.texto }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="cartao">
+    <h2>Sua estante</h2>
+    <div class="contadores">
+      <div><b>{{ resumo.total }}</b>total</div>
+      <div><b>{{ resumo.favoritos }}</b>favoritos</div>
+      <div><b>{{ resumo.quero_ler }}</b>quero ler</div>
+    </div>
+  </section>
+</div>
+{% endblock %}
