@@ -37,7 +37,7 @@ Dois jeitos de usar, com as mesmas regras por baixo:
 | Terminal | `python3 main.py` | Roteiro completo em menu |
 | Web (Flask) | `python3 mainFlask.py` e abrir `http://127.0.0.1:5000` | As 6 telas do protótipo |
 
-Login de teste: `ana@email.com`, senha `123456`. Testes: `python3 -m unittest discover tests`.
+Contas de teste (todas com a senha `123456`): `ana@email.com` (estante já cheia), `beto@email.com`, `carla@email.com` e `roberto@email.com` (estante vazia). Testes: `python3 -m unittest discover tests`.
 
 ## 2. Mapa das pastas
 
@@ -98,7 +98,7 @@ Por que existe: os serviços não sabem onde os dados ficam. Se um dia for um ar
 | Arquivo | Regras que cuida |
 |---|---|
 | `conta_service.py` | Cadastro (e-mail único) e login |
-| `catalogo_service.py` | Listar, buscar, média das notas, populares |
+| `catalogo_service.py` | Listar, buscar, média das notas, populares e o livro do dia (um por dia, pela data) |
 | `estante_service.py` | Marcar e desmarcar status, listar por filtro, contadores |
 | `avaliacao_service.py` | Avaliar (uma por pessoa), comentar, curtir, diário recente |
 | `filtros.py` | O padrão Strategy (próxima seção) |
@@ -113,6 +113,7 @@ Por que existe: os serviços não sabem onde os dados ficam. Se um dia for um ar
 | `app/rotas.py` | Uma função por tela ou ação. Lê o formulário, chama o serviço, escolhe a página |
 | `app/view/*.html` | As telas. `base.html` é o esqueleto (topo e mensagens); as outras o estendem |
 | `app/static/css/style.css` | Tema escuro e verde do protótipo |
+| `app/static/img/capas/N.svg` | Capa do livro de id N, desenhada à mão em SVG (sem texto; o título é escrito pelo HTML por cima). Livro sem arquivo usa `padrao.svg` |
 | `mainFlask.py` | Duas linhas que sobem o servidor |
 
 A rota `exigir_login` (em `rotas.py`) manda qualquer pessoa sem sessão para o login, menos as telas de entrada e cadastro.
@@ -162,10 +163,25 @@ Os diagramas estão em `docs/uml/diagrama_de_classes.md`: classes do domínio, o
 | Tipos de associação | Estante, Avaliação e Comentário ligam Usuário e Livro (muitos para um) |
 | Acoplamento e coesão | O terminal e o Flask só dependem de `Sistema`; cada serviço cuida de um assunto |
 
-## 8. Limitações conhecidas
+## 8. Onde os dados ficam (e por que não há banco de dados)
 
-- Os dados ficam só em memória: ao reiniciar, volta tudo para a semente.
+Tudo vive na memória do programa, nas listas do `RepositorioMemoria`. Na hora em que o programa abre, `semente.py` enche essas listas; quando ele fecha, o que estava nelas some.
+
+| Situação | O que acontece |
+|---|---|
+| Você cria a conta `fulano@email.com` no navegador | O usuário entra na lista `usuarios` do processo do Flask que está rodando |
+| Você reinicia o Flask (ou o modo `debug` recarrega ao salvar um arquivo) | A conta some; volta só o que está na semente |
+| Outra pessoa roda o projeto no computador dela | Ela tem o próprio processo, com a própria memória, e só vê as contas da semente |
+| Duas pessoas abrem o mesmo servidor | Veriam os mesmos dados, mas o servidor só aceita conexões da própria máquina (`127.0.0.1`) |
+| Você usa o terminal e depois o Flask | São dois processos separados; um não enxerga o que o outro criou |
+
+Por que foi assim: o professor não exigiu banco, e memória mantém o código curto e fácil de apresentar. Como `servicos/` só fala com o repositório, trocar a memória por arquivo ou banco muda apenas a pasta `repositorios/` (é a ideia do DAO). Isso seria o próximo passo natural.
+
+## 9. Limitações conhecidas
+
+- Os dados ficam só em memória (seção 8): ao reiniciar, volta tudo para a semente.
 - A senha fica em texto puro dentro de `Usuario`. Num sistema real usaria hash.
 - A chave da sessão do Flask está escrita no código. Aceitável num trabalho acadêmico.
 - No protótipo, a busca "fantasia" mostra Circe (Mitologia), mas a busca real só devolve os 2 livros de fantasia. O desenho tinha essa inconsistência.
+- Os livros 7, 8 e 9 (baleias, árvores e cosmos), seus autores e editoras são inventados para a demonstração.
 - Os modelos dos colegas foram alterados (Autora restaurada, `lido` movido para `Estante`, bug dos likes, usuário e livro nas avaliações e comentários). Combinar com o grupo antes de subir.
