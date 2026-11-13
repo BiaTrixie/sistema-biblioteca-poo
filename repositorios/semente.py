@@ -42,36 +42,37 @@ LIVROS = [
 ]
 
 
-def _achar(lista, nome):
-    """Devolve o item com esse nome; se não existir ainda, devolve None."""
-    return next((item for item in lista if item.nome == nome), None)
+def criar_repositorio(repo=None):
+    """Devolve o repositório pronto. Se estiver vazio, enche com os dados do protótipo."""
+    repo = repo or RepositorioMemoria()
+    with repo.transacao():
+        if repo.esta_vazio():  # conferido dentro da transação, para duas execuções não semearem juntas
+            _semear(repo)
+    return repo
 
 
-def criar_repositorio():
-    """Monta o repositório com os mesmos dados que aparecem no protótipo."""
-    repo = RepositorioMemoria()
+def _obter(repo, cache, classe, colecao, nome):
+    """Reaproveita o item com esse nome; se for novo, cria e salva."""
+    if nome not in cache:
+        cache[nome] = classe(repo.proximo_id(colecao), nome)
+        repo.salvar(cache[nome])
+    return cache[nome]
+
+
+def _semear(repo):
+    generos, editoras, autoras, livros = {}, {}, {}, []
 
     for nome, ano, nome_genero, nome_editora, nome_autora, sinopse in LIVROS:
-        genero = _achar(repo.generos, nome_genero)
-        if genero is None:
-            genero = Genero(repo.proximo_id(repo.generos), nome_genero)
-            repo.generos.append(genero)
-
-        editora = _achar(repo.editoras, nome_editora)
-        if editora is None:
-            editora = Editora(repo.proximo_id(repo.editoras), nome_editora)
-            repo.editoras.append(editora)
-
-        autora = _achar(repo.autoras, nome_autora)
-        if autora is None:
-            autora = Autora(repo.proximo_id(repo.autoras), nome_autora)
-            repo.autoras.append(autora)
-
-        editora.adicionar_autora(autora)
-        autora.adicionar_editora(editora)
-        repo.livros.append(
-            Livro(repo.proximo_id(repo.livros), nome, ano, genero, sinopse, "1ª", editora, autora)
-        )
+        genero = _obter(repo, generos, Genero, "generos", nome_genero)
+        editora = _obter(repo, editoras, Editora, "editoras", nome_editora)
+        autora = _obter(repo, autoras, Autora, "autoras", nome_autora)
+        if autora not in editora.autores:
+            editora.adicionar_autora(autora)
+            autora.adicionar_editora(editora)
+            repo.salvar(editora)
+        livro = Livro(repo.proximo_id("livros"), nome, ano, genero, sinopse, "1ª", editora, autora)
+        repo.salvar(livro)
+        livros.append(livro)
 
     ana = Usuario(1, "Ana", "ana@email.com", "123456")
     beto = Usuario(2, "Beto", "beto@email.com", "123456")
@@ -79,9 +80,10 @@ def criar_repositorio():
     roberto = Usuario(4, "Roberto", "roberto@email.com", "123456")
     juliana = Usuario(5, "Juliana", "juliana@email.com", "123456")
     lucas = Usuario(6, "Lucas Arruda", "lucas@email.com", "123456")
-    repo.usuarios.extend([ana, beto, carla, roberto, juliana, lucas])
+    for usuario in (ana, beto, carla, roberto, juliana, lucas):
+        repo.salvar(usuario)
 
-    hobbit, orgulho, cem_anos, hora, nome_vento, circe, baleias, floresta, cosmos = repo.livros
+    hobbit, orgulho, cem_anos, hora, nome_vento, circe, baleias, floresta, cosmos = livros
 
     # Estante da Ana: 6 livros, 2 favoritos, 3 quero ler (como na tela "Minha estante")
     registros = [
@@ -92,11 +94,10 @@ def criar_repositorio():
         (nome_vento, False, True, False),
         (circe, False, True, False),
     ]
-    for livro, favorito, quer_ler, lido in registros:
-        id_novo = repo.proximo_id(repo.estantes)
-        repo.estantes.append(Estante(id_novo, ana, livro, favorito, quer_ler, lido))
+    for numero, (livro, favorito, quer_ler, lido) in enumerate(registros, start=1):
+        repo.salvar(Estante(numero, ana, livro, favorito, quer_ler, lido))
 
-    # (usuario, livro, nota, data, comentario)
+    # usuário, livro, nota, data, comentário
     avaliacoes = [
         (ana, hobbit, 5, date(2026, 9, 25), "Recomendo."),
         (ana, cem_anos, 5, date(2026, 9, 21), ""),
@@ -114,18 +115,14 @@ def criar_repositorio():
         (beto, cosmos, 4, date(2026, 10, 9), ""),
         (juliana, baleias, 5, date(2026, 10, 12), "É o melhor livro que já li na minha vida."),
     ]
-    for usuario, livro, nota, data, texto in avaliacoes:
-        id_novo = repo.proximo_id(repo.avaliacoes)
-        repo.avaliacoes.append(Avaliacao(id_novo, nota, data, usuario, livro, texto))
+    for numero, (usuario, livro, nota, data, texto) in enumerate(avaliacoes, start=1):
+        repo.salvar(Avaliacao(numero, nota, data, usuario, livro, texto))
 
-    repo.comentarios.append(
-        Comentario(1, "Aventura excelente.", date(2026, 9, 25), ana, hobbit)
-    )
-    repo.comentarios.append(
-        Comentario(2, "Um livro curto que fica o mês inteiro na cabeça.",
-                   date(2026, 9, 24), ana, hora, numero_likes=12)
-    )
-    repo.comentarios.append(
-        Comentario(3, "Eu amo árvores, oh my god.", date(2026, 10, 11), lucas, floresta)
-    )
-    return repo
+    # id, texto, data, usuário, livro, curtidas
+    comentarios = [
+        (1, "Aventura excelente.", date(2026, 9, 25), ana, hobbit, 0),
+        (2, "Um livro curto que fica o mês inteiro na cabeça.", date(2026, 9, 24), ana, hora, 12),
+        (3, "Eu amo árvores, oh my god.", date(2026, 10, 11), lucas, floresta, 0),
+    ]
+    for id_comentario, texto, data, usuario, livro, curtidas in comentarios:
+        repo.salvar(Comentario(id_comentario, texto, data, usuario, livro, curtidas))
