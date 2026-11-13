@@ -1,4 +1,7 @@
 from datetime import date
+from functools import cache
+
+from werkzeug.security import generate_password_hash
 
 from modelos.autora import Autora
 from modelos.avaliacao import Avaliacao
@@ -42,6 +45,12 @@ LIVROS = [
 ]
 
 
+@cache
+def _senha_padrao():
+    """Hash de '123456', calculado uma vez só (cada hash leva uns 130 ms)."""
+    return generate_password_hash("123456")
+
+
 def criar_repositorio(repo=None):
     """Devolve o repositório pronto. Se estiver vazio, enche com os dados do protótipo."""
     repo = repo or RepositorioMemoria()
@@ -74,14 +83,15 @@ def _semear(repo):
         repo.salvar(livro)
         livros.append(livro)
 
-    ana = Usuario(1, "Ana", "ana@email.com", "123456")
-    beto = Usuario(2, "Beto", "beto@email.com", "123456")
-    carla = Usuario(3, "Carla", "carla@email.com", "123456")
-    roberto = Usuario(4, "Roberto", "roberto@email.com", "123456")
-    juliana = Usuario(5, "Juliana", "juliana@email.com", "123456")
-    lucas = Usuario(6, "Lucas Arruda", "lucas@email.com", "123456")
-    for usuario in (ana, beto, carla, roberto, juliana, lucas):
+    # todas as contas da semente usam a senha 123456
+    contas = [("Ana", "ana@email.com"), ("Beto", "beto@email.com"), ("Carla", "carla@email.com"),
+              ("Roberto", "roberto@email.com"), ("Juliana", "juliana@email.com"),
+              ("Lucas Arruda", "lucas@email.com")]
+    usuarios = [Usuario(i, nome, email, _senha_padrao(), protegida=True)
+                for i, (nome, email) in enumerate(contas, start=1)]
+    for usuario in usuarios:
         repo.salvar(usuario)
+    ana, beto, carla, roberto, juliana, lucas = usuarios
 
     hobbit, orgulho, cem_anos, hora, nome_vento, circe, baleias, floresta, cosmos = livros
 

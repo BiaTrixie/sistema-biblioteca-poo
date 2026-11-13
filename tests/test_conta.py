@@ -15,6 +15,11 @@ class TesteConta(unittest.TestCase):
     def test_conta_do_roberto_existe_na_semente(self):
         self.assertEqual(self.contas.entrar("roberto@email.com", "123456").nome, "Roberto")
 
+    def test_senha_nao_fica_legivel(self):
+        usuario = self.contas.cadastrar("Duda", "duda@email.com", "abc123")
+        self.assertNotIn("abc123", usuario.senha_protegida)
+        self.assertTrue(usuario.verificar_senha("abc123"))
+
     def test_entrar_com_senha_errada(self):  # R2
         with self.assertRaises(ValueError):
             self.contas.entrar("ana@email.com", "errada")
