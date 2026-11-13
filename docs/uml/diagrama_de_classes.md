@@ -115,12 +115,53 @@ classDiagram
 
 `<|--` é herança (aqui, realização de uma classe abstrata) e `..>` é dependência: o serviço só usa o filtro durante a chamada, não o guarda.
 
+# DAO (repositórios)
+
+```mermaid
+classDiagram
+    direction TB
+    class Repositorio {
+        <<interface>>
+        +salvar(objeto)
+        +remover(objeto)
+        +proximo_id(colecao) int
+        +transacao()
+        +buscar_usuario(id) Usuario
+        +listar_livros() list
+        +buscar_registro(usuario, livro) Estante
+        +listar_avaliacoes(livro) list
+    }
+    class RepositorioMemoria {
+        -dados
+    }
+    class RepositorioSQLite {
+        -conexao
+        +fechar()
+    }
+    class ContaService
+    class CatalogoService
+    class EstanteService
+    class AvaliacaoService
+    class Sistema
+
+    Repositorio <|.. RepositorioMemoria
+    Repositorio <|.. RepositorioSQLite
+    ContaService ..> Repositorio : usa
+    CatalogoService ..> Repositorio : usa
+    EstanteService ..> Repositorio : usa
+    AvaliacaoService ..> Repositorio : usa
+    Sistema ..> RepositorioSQLite : cria
+```
+
+`<|..` é realização: a classe cumpre o contrato da interface. Os serviços dependem só de `Repositorio`, então trocar a implementação não muda os serviços. Os testes usam as duas implementações.
+
 # Camadas
 
 ```mermaid
 flowchart LR
     V[view: HTML] --> C[controller: rotas Flask ou menu do terminal]
     C --> S[servicos: regras]
-    S --> R[repositorios: listas em memória]
+    S --> R[repositorios: interface Repositorio]
     R --> M[modelos: classes do domínio]
+    R --> B[(dados/estante.db)]
 ```
