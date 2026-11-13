@@ -1,6 +1,8 @@
 class Comentario:
-    def __init__(self, id, texto, data, numero_likes=0):
+    def __init__(self, id, texto, data, usuario, livro, numero_likes=0):
         self.__id = id
+        self.__usuario = usuario
+        self.__livro = livro
         self.__texto = texto
         self.__data = data
         self.__numero_likes = numero_likes
@@ -22,12 +24,19 @@ class Comentario:
         self.__texto = texto
 
     @property
-    def numeros_likes(self):
-        return self.__numeros_likes
+    def usuario(self):
+        return self.__usuario
 
-    @numeros_likes.setter
-    def numeros_likes(self, numeros_likes):
-        self.__numeros_likes = numeros_likes
+    @property
+    def livro(self):
+        return self.__livro
+
+    @property
+    def numero_likes(self):
+        return self.__numero_likes
+
+    def curtir(self):
+        self.__numero_likes += 1
 
     @property
     def data(self):

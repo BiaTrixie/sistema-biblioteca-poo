@@ -1,5 +1,5 @@
 class Livro:
-    def __init__(self, id, nome, ano, genero, sinopse, edicao, editora, lido=False):
+    def __init__(self, id, nome, ano, genero, sinopse, edicao, editora, autora):
         self.__id = id
         self.__nome = nome
         self.__ano = ano
@@ -7,7 +7,7 @@ class Livro:
         self.__sinopse = sinopse
         self.__edicao = edicao
         self.__editora = editora
-        self.__lido = lido
+        self.__autora = autora
 
     @property
     def id(self):
@@ -66,16 +66,12 @@ class Livro:
         self.__editora = editora
 
     @property
-    def lido(self):
-        return self.__lido
+    def autora(self):
+        return self.__autora
 
-    @lido.setter
-    def lido(self, lido):
-        self.__lido = lido
+    @autora.setter
+    def autora(self, autora):
+        self.__autora = autora
 
     def __str__(self):
-        if self.__lido:
-            situacao = "lido"
-        else:
-            situacao = "não lido"
-        return f"[{self.__id}] {self.__nome} ({self.__ano}) — {self.__genero.nome} — {situacao}"
+        return f"[{self.__id}] {self.__nome} ({self.__ano}) — {self.__autora.nome} — {self.__genero.nome}"
