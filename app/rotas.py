@@ -67,10 +67,22 @@ def cadastro():
     return render_template("cadastro.html")
 
 
-@app.route("/sair")
+@app.route("/sair", methods=["POST"])
 def sair():
     session.clear()
     return redirect(url_for("login"))
+
+
+@app.route("/perfil")
+def perfil():
+    pessoa = usuario_logado()
+    avaliacoes, comentarios = sistema.avaliacao.do_usuario(pessoa)
+    return render_template(
+        "perfil.html",
+        resumo=sistema.estante.resumo(pessoa),
+        qtd_avaliacoes=len(avaliacoes),
+        qtd_comentarios=len(comentarios),
+    )
 
 
 # --- telas principais ---
@@ -131,6 +143,7 @@ def livro(id_livro):
         avaliacoes=avaliacoes,
         comentarios=comentarios,
         registro=sistema.estante.registro(usuario_logado(), livro),
+        meu_comentario=sistema.avaliacao.comentario_de(usuario_logado(), livro),
     )
 
 
@@ -172,7 +185,7 @@ def comentar(id_livro):
 @app.route("/comentario/<int:id_comentario>/curtir", methods=["POST"])
 def curtir(id_comentario):
     try:
-        comentario = sistema.avaliacao.curtir(id_comentario)
+        comentario = sistema.avaliacao.curtir(id_comentario, usuario_logado())
     except ValueError:
         abort(404)
     return redirect(url_for("livro", id_livro=comentario.livro.id))

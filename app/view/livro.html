@@ -21,6 +21,7 @@
       <button name="status" value="quer_ler" class="botao {{ 'laranja' if quer_ler }}">Quero ler</button>
       <a class="botao" href="{{ url_for('avaliar', id_livro=livro.id) }}">Avaliar</a>
     </form>
+    <p class="mudo pequeno">Lido e Quero ler não ficam marcados juntos: marcar um desmarca o outro.</p>
 
     <p class="media">
       <b>{{ ('%.1f'|format(nota_media))|replace('.', ',') if nota_media else '—' }}</b>
@@ -33,7 +34,7 @@
     <div class="comentario">
       <strong>{{ c.usuario.nome }} · {{ c.data.strftime('%d/%m/%Y') }} · {{ c.numero_likes }} curtidas</strong>
       <p>{{ c.texto }}</p>
-      <form method="post" action="{{ url_for('curtir', id_comentario=c.id) }}"><button class="link">Curtir</button></form>
+      <form method="post" action="{{ url_for('curtir', id_comentario=c.id) }}"><button class="link {{ 'curtido' if c.curtido_por(usuario) }}">{{ 'Curtido' if c.curtido_por(usuario) else 'Curtir' }}</button></form>
     </div>
     {% endfor %}
     {% for a in avaliacoes %}
@@ -44,9 +45,10 @@
     {% endfor %}
 
     <form class="novo-comentario" method="post" action="{{ url_for('comentar', id_livro=livro.id) }}">
-      <textarea name="texto" rows="2" placeholder="Escreva um comentário"></textarea>
-      <button class="botao">Comentar</button>
+      <textarea name="texto" rows="2" placeholder="Escreva um comentário">{{ meu_comentario.texto if meu_comentario else '' }}</textarea>
+      <button class="botao">{{ 'Atualizar comentário' if meu_comentario else 'Comentar' }}</button>
     </form>
+    <p class="mudo pequeno">Um comentário por livro: comentar de novo substitui o anterior.</p>
   </section>
 </div>
 {% endblock %}

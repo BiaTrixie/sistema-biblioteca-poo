@@ -16,11 +16,16 @@ class MenuPrincipal:
 
     def executar(self):
         print("\n=== estante — o diário dos seus livros ===")
-        while self.usuario is None:
-            self.tela_entrada()
         while True:
+            while self.usuario is None:
+                self.tela_entrada()
+            if self.menu():  # True: a pessoa escolheu sair do programa; False: só saiu da conta
+                return
+
+    def menu(self):
+        while self.usuario is not None:
             opcao = input(
-                "\n1) Início  2) Buscar  3) Minha estante  4) Abrir livro  0) Sair\n> "
+                "\n1) Início  2) Buscar  3) Minha estante  4) Abrir livro  5) Meu perfil  0) Sair\n> "
             ).strip()
             if opcao == "1":
                 self.inicio()
@@ -30,11 +35,14 @@ class MenuPrincipal:
                 self.minha_estante()
             elif opcao == "4":
                 self.abrir_livro()
+            elif opcao == "5":
+                self.perfil()
             elif opcao == "0":
                 print("Até a próxima!")
-                return
+                return True
             else:
                 print("Opção inválida.")
+        return False
 
     def tela_entrada(self):
         opcao = input("\n1) Entrar  2) Criar conta  0) Sair\n> ").strip()
@@ -100,6 +108,21 @@ class MenuPrincipal:
         for registro in registros:
             print(f"  {registro}")
 
+    def perfil(self):
+        pessoa = self.usuario
+        resumo = self.sistema.estante.resumo(pessoa)
+        avaliacoes, comentarios = self.sistema.avaliacao.do_usuario(pessoa)
+        print(f"\nPERFIL\n  Nome: {pessoa.nome}\n  E-mail: {pessoa.email}")
+        print(f"  Tipo de conta: {'administrador' if pessoa.admin else 'leitor'}")
+        print(
+            f"  Estante: {resumo['total']} no total · {resumo['lidos']} lidos · "
+            f"{resumo['favoritos']} favoritos · {resumo['quero_ler']} quero ler"
+        )
+        print(f"  Avaliações: {len(avaliacoes)} · Comentários: {len(comentarios)}")
+        if input("\nSair da conta? (s/N) ").strip().lower() == "s":
+            self.usuario = None
+            print("Você saiu da conta.")
+
     def abrir_livro(self):
         self.listar_livros(self.sistema.catalogo.listar())
         try:
@@ -136,10 +159,10 @@ class MenuPrincipal:
                 self.sistema.avaliacao.avaliar(self.usuario, livro, nota, texto)
                 print("Avaliação publicada.")
             elif opcao == "5":
-                self.sistema.avaliacao.comentar(self.usuario, livro, input("Comentário: "))
+                self.sistema.avaliacao.comentar(self.usuario, livro, input("Comentário (substitui o seu anterior neste livro): "))
                 print("Comentário publicado.")
             elif opcao == "6":
-                self.sistema.avaliacao.curtir(int(input("Número do comentário: ")))
-                print("Curtido.")
+                comentario = self.sistema.avaliacao.curtir(int(input("Número do comentário: ")), self.usuario)
+                print("Curtido." if comentario.curtido_por(self.usuario) else "Curtida desfeita.")
         except ValueError as erro:
             print(f"Erro: {erro}")

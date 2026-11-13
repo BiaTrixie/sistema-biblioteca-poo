@@ -14,8 +14,18 @@ from modelos.livro import Livro
 from modelos.usuario import Usuario
 from repositorios.repositorio import COLECAO_DE, Repositorio
 
-# Suba este número quando as tabelas mudarem; um arquivo antigo é recusado com um aviso.
-VERSAO_DO_ESQUEMA = 1
+# Suba este número quando as tabelas mudarem e escreva a migração do número anterior.
+VERSAO_DO_ESQUEMA = 2
+
+# um comentário por pessoa e livro; quem curtiu fica numa tabela própria (uma linha por pessoa)
+TABELA_COMENTARIOS = """CREATE TABLE IF NOT EXISTS comentarios (
+        id INTEGER PRIMARY KEY, usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+        livro_id INTEGER NOT NULL REFERENCES livros(id), texto TEXT NOT NULL,
+        data TEXT NOT NULL, UNIQUE (usuario_id, livro_id))"""
+TABELA_CURTIDAS = """CREATE TABLE IF NOT EXISTS curtidas (
+        comentario_id INTEGER NOT NULL REFERENCES comentarios(id) ON DELETE CASCADE,
+        usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+        PRIMARY KEY (comentario_id, usuario_id))"""
 
 TABELAS = [
     "CREATE TABLE IF NOT EXISTS generos (id INTEGER PRIMARY KEY, nome TEXT NOT NULL)",
@@ -42,10 +52,8 @@ TABELAS = [
         livro_id INTEGER NOT NULL REFERENCES livros(id),
         nota INTEGER NOT NULL CHECK (nota BETWEEN 1 AND 5), data TEXT NOT NULL,
         comentario TEXT NOT NULL, UNIQUE (usuario_id, livro_id))""",
-    """CREATE TABLE IF NOT EXISTS comentarios (
-        id INTEGER PRIMARY KEY, usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
-        livro_id INTEGER NOT NULL REFERENCES livros(id), texto TEXT NOT NULL,
-        data TEXT NOT NULL, numero_likes INTEGER NOT NULL)""",
+    TABELA_COMENTARIOS,
+    TABELA_CURTIDAS,
 ]
 
 # como cada objeto vira uma linha da tabela (colunas e valores)
@@ -63,7 +71,7 @@ PARA_LINHA = {
     Avaliacao: lambda a: {"id": a.id, "usuario_id": a.usuario.id, "livro_id": a.livro.id,
                           "nota": a.nota, "data": a.data.isoformat(), "comentario": a.comentario},
     Comentario: lambda c: {"id": c.id, "usuario_id": c.usuario.id, "livro_id": c.livro.id,
-                           "texto": c.texto, "data": c.data.isoformat(), "numero_likes": c.numero_likes},
+                           "texto": c.texto, "data": c.data.isoformat()},
 }
 
 CATALOGO = (Genero, Editora, Autora, Livro)  # nunca mudam com o programa rodando
@@ -125,11 +133,29 @@ class RepositorioSQLite(Repositorio):
                 for comando in TABELAS:
                     self.__conexao.execute(comando)
                 self.__conexao.execute(f"PRAGMA user_version = {VERSAO_DO_ESQUEMA}")
+            elif versao == 1:
+                self.__migrar_da_versao_1()
             elif versao != VERSAO_DO_ESQUEMA:
                 raise RuntimeError(
                     f"O banco {caminho} é de uma versão antiga. "
                     "Apague o arquivo para ele ser recriado (as contas criadas nele se perdem)."
                 )
+
+    def __migrar_da_versao_1(self):
+        """Versão 1 para 2, sem perder contas: aplica as regras novas aos dados que já existem."""
+        executar = self.__conexao.execute
+        # lido e quero ler não ficam juntos: onde estavam, vale o lido
+        executar("UPDATE estantes SET quer_ler = 0 WHERE lido = 1 AND quer_ler = 1")
+        # um comentário por pessoa e livro: fica o mais novo. As curtidas antigas eram só um
+        # número, sem saber de quem, então não dá para aproveitar.
+        executar("ALTER TABLE comentarios RENAME TO comentarios_v1")
+        executar(TABELA_COMENTARIOS)
+        executar(TABELA_CURTIDAS)
+        executar("""INSERT INTO comentarios SELECT id, usuario_id, livro_id, texto, data
+                    FROM comentarios_v1
+                    WHERE id IN (SELECT MAX(id) FROM comentarios_v1 GROUP BY usuario_id, livro_id)""")
+        executar("DROP TABLE comentarios_v1")
+        executar(f"PRAGMA user_version = {VERSAO_DO_ESQUEMA}")
 
     # --- escrita ---
 
@@ -152,6 +178,10 @@ class RepositorioSQLite(Repositorio):
                     f"ON CONFLICT(id) DO UPDATE SET {atualiza}",
                     list(valores.values()),
                 )
+                if isinstance(objeto, Comentario):  # quem curtiu: apaga e regrava a lista
+                    self.__conexao.execute("DELETE FROM curtidas WHERE comentario_id = ?", (objeto.id,))
+                    for id_usuario in objeto.curtidas:
+                        self.__conexao.execute("INSERT INTO curtidas VALUES (?, ?)", (objeto.id, id_usuario))
                 if isinstance(objeto, Editora):  # a ligação editora-autora tem tabela própria
                     for autora in objeto.autores:
                         self.__conexao.execute(
@@ -249,9 +279,15 @@ class RepositorioSQLite(Repositorio):
         return Avaliacao(linha["id"], linha["nota"], date.fromisoformat(linha["data"]),
                          usuario, livro, linha["comentario"])
 
-    def __para_comentario(self, linha, usuario, livro):
+    def __curtidas_por_comentario(self):
+        curtidas = {}
+        for r in self.__consultar("SELECT comentario_id, usuario_id FROM curtidas"):
+            curtidas.setdefault(r["comentario_id"], set()).add(r["usuario_id"])
+        return curtidas
+
+    def __para_comentario(self, linha, usuario, livro, curtidas):
         return Comentario(linha["id"], linha["texto"], date.fromisoformat(linha["data"]),
-                          usuario, livro, linha["numero_likes"])
+                          usuario, livro, curtidas.get(linha["id"], ()))
 
     def buscar_avaliacao(self, usuario, livro):
         linhas = self.__consultar(
@@ -269,9 +305,18 @@ class RepositorioSQLite(Repositorio):
         if not linhas:
             return None
         usuario = self.buscar_usuario(linhas[0]["usuario_id"])
-        return self.__para_comentario(linhas[0], usuario, self.buscar_livro(linhas[0]["livro_id"]))
+        return self.__para_comentario(linhas[0], usuario, self.buscar_livro(linhas[0]["livro_id"]),
+                                      self.__curtidas_por_comentario())
+
+    def buscar_comentario_de(self, usuario, livro):
+        linhas = self.__consultar(
+            "SELECT * FROM comentarios WHERE usuario_id = ? AND livro_id = ?", (usuario.id, livro.id)
+        )
+        return (self.__para_comentario(linhas[0], usuario, livro, self.__curtidas_por_comentario())
+                if linhas else None)
 
     def listar_comentarios(self, livro=None):
         usuarios, livros = self.__usuarios_por_id(), self.__ler_catalogo()["livros"]
-        return [self.__para_comentario(r, usuarios[r["usuario_id"]], livros[r["livro_id"]])
+        curtidas = self.__curtidas_por_comentario()
+        return [self.__para_comentario(r, usuarios[r["usuario_id"]], livros[r["livro_id"]], curtidas)
                 for r in self.__filtrar_por_livro("comentarios", livro)]

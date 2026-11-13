@@ -119,3 +119,19 @@ label input, label textarea { margin-top: 6px; }
   .pagina-livro .capa { width: 206px; }
   .apresentacao { padding: 32px 24px; } .apresentacao h1 { font-size: 36px; margin-top: 24px; }
 }
+
+/* perfil */
+.identidade { display: flex; align-items: center; gap: 22px; margin: 6px 0 28px; }
+.identidade h1 { font-size: 36px; font-weight: normal; margin: 0 0 4px; }
+.avatar.grande { width: 72px; height: 72px; font-size: 30px; font-weight: 700; }
+.duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px; }
+.duas-colunas .contadores { margin-bottom: 14px; }
+.dados { display: grid; grid-template-columns: 130px 1fr; gap: 12px 16px; margin: 0; }
+.dados dt { color: var(--mudo); font-weight: 600; }
+.dados dd { margin: 0; }
+.sessao { display: flex; justify-content: space-between; align-items: center; }
+.sessao h2 { margin-bottom: 4px; }
+.sessao p { margin: 0; }
+.perfil.ativo { color: var(--verde); }
+.curtido { color: var(--verde); font-weight: 700; }
+@media (max-width: 800px) { .duas-colunas { grid-template-columns: 1fr; } .sessao { flex-direction: column; align-items: flex-start; gap: 14px; } }

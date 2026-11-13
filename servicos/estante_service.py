@@ -40,6 +40,7 @@ class EstanteService:
         meus = self.listar(usuario)
         return {
             "total": len(meus),
+            "lidos": sum(r.lido for r in meus),
             "favoritos": sum(r.favorito for r in meus),
             "quero_ler": sum(r.quer_ler for r in meus),
         }

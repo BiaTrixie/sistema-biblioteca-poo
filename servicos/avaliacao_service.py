@@ -24,18 +24,32 @@ class AvaliacaoService:
     def comentar(self, usuario, livro, texto):
         if not texto.strip():
             raise ValueError("escreva algo no comentário")
-        novo_id = self.__repo.proximo_id("comentarios")
-        comentario = Comentario(novo_id, texto.strip(), date.today(), usuario, livro)
+        comentario = self.__repo.buscar_comentario_de(usuario, livro)
+        if comentario is not None:  # um comentário por pessoa e livro: o novo sobrescreve
+            comentario.substituir(texto.strip(), date.today())
+        else:
+            novo_id = self.__repo.proximo_id("comentarios")
+            comentario = Comentario(novo_id, texto.strip(), date.today(), usuario, livro)
         self.__repo.salvar(comentario)
         return comentario
 
-    def curtir(self, id_comentario):
+    def curtir(self, id_comentario, usuario):
+        """Cada pessoa curte uma vez; clicar de novo desfaz a curtida."""
         comentario = self.__repo.buscar_comentario(id_comentario)
         if comentario is None:
             raise ValueError("comentário não encontrado")
-        comentario.curtir()
+        comentario.alternar_curtida(usuario)
         self.__repo.salvar(comentario)
         return comentario
+
+    def comentario_de(self, usuario, livro):
+        return self.__repo.buscar_comentario_de(usuario, livro)
+
+    def do_usuario(self, usuario):
+        """Avaliações e comentários feitos por uma pessoa, para o perfil."""
+        avaliacoes = [a for a in self.__repo.listar_avaliacoes() if a.usuario.id == usuario.id]
+        comentarios = [c for c in self.__repo.listar_comentarios() if c.usuario.id == usuario.id]
+        return avaliacoes, comentarios
 
     def do_livro(self, livro):
         """Avaliações e comentários de um livro, para a página do livro."""

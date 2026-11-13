@@ -69,5 +69,12 @@ class RepositorioMemoria(Repositorio):
     def buscar_comentario(self, id_comentario):
         return next((c for c in self.__dados["comentarios"] if c.id == id_comentario), None)
 
+    def buscar_comentario_de(self, usuario, livro):
+        return next(
+            (c for c in self.__dados["comentarios"]
+             if c.usuario.id == usuario.id and c.livro.id == livro.id),
+            None,
+        )
+
     def listar_comentarios(self, livro=None):
         return [c for c in self.__dados["comentarios"] if livro is None or c.livro.id == livro.id]

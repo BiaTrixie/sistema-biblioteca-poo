@@ -24,6 +24,8 @@ class Estante:
         self.__favorito = self.__validar_booleano(favorito)
         self.__quer_ler = self.__validar_booleano(quer_ler)
         self.__lido = self.__validar_booleano(lido)
+        if self.__lido and self.__quer_ler:
+            raise ValueError("um livro não pode estar como lido e quero ler ao mesmo tempo")
 
     @property
     def id(self) -> int:
@@ -51,12 +53,16 @@ class Estante:
 
     def definir_lido(self, valor: bool) -> None:
         self.__lido = self.__validar_booleano(valor)
+        if self.__lido:  # quem já leu não "quer ler"
+            self.__quer_ler = False
 
     def definir_favorito(self, valor: bool) -> None:
         self.__favorito = self.__validar_booleano(valor)
 
     def definir_quer_ler(self, valor: bool) -> None:
         self.__quer_ler = self.__validar_booleano(valor)
+        if self.__quer_ler:  # quem quer ler ainda não leu
+            self.__lido = False
 
     def __validar_booleano(self, valor: bool) -> bool:
         if not isinstance(valor, bool):

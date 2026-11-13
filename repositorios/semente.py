@@ -128,11 +128,12 @@ def _semear(repo):
     for numero, (usuario, livro, nota, data, texto) in enumerate(avaliacoes, start=1):
         repo.salvar(Avaliacao(numero, nota, data, usuario, livro, texto))
 
-    # id, texto, data, usuário, livro, curtidas
+    # id, texto, data, usuário, livro, quem curtiu
     comentarios = [
-        (1, "Aventura excelente.", date(2026, 9, 25), ana, hobbit, 0),
-        (2, "Um livro curto que fica o mês inteiro na cabeça.", date(2026, 9, 24), ana, hora, 12),
-        (3, "Eu amo árvores, oh my god.", date(2026, 10, 11), lucas, floresta, 0),
+        (1, "Aventura excelente.", date(2026, 9, 25), ana, hobbit, set()),
+        (2, "Um livro curto que fica o mês inteiro na cabeça.", date(2026, 9, 24), ana, hora,
+         {beto.id, carla.id, roberto.id, juliana.id, lucas.id}),
+        (3, "Eu amo árvores, oh my god.", date(2026, 10, 11), lucas, floresta, set()),
     ]
     for id_comentario, texto, data, usuario, livro, curtidas in comentarios:
         repo.salvar(Comentario(id_comentario, texto, data, usuario, livro, curtidas))
