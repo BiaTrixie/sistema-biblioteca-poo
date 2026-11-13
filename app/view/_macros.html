@@ -1,13 +1,19 @@
-{# estrelas de 0 a 5 a partir da média; capa colorida do livro #}
+{# estrelas a partir da média; capa e miniatura usam a arte em static/img/capas #}
 {% macro estrelas(valor) %}
   {% if valor is none %}<span class="mudo">sem avaliações</span>
   {% else %}<span class="estrelas">{% for i in range(1, 6) %}{{ '★' if valor >= i - 0.25 else '☆' }}{% endfor %}</span>{% endif %}
 {% endmacro %}
 
-{% macro capa(livro) %}
-  <a class="capa cor{{ livro.id % 6 }}" href="{{ url_for('livro', id_livro=livro.id) }}">
+{% macro capa(livro, texto=True) %}
+  <a class="capa {{ '' if texto else 'sem-texto' }}" href="{{ url_for('livro', id_livro=livro.id) }}" style="--img: url('{{ capa_url(livro) }}')">
+    {% if texto %}
     <small>{{ livro.genero.nome }}</small>
     <strong>{{ livro.nome }}</strong>
     <span>{{ livro.autora.nome }}</span>
+    {% endif %}
   </a>
+{% endmacro %}
+
+{% macro miniatura(livro) %}
+  <span class="miniatura" style="--img: url('{{ capa_url(livro) }}')"></span>
 {% endmacro %}

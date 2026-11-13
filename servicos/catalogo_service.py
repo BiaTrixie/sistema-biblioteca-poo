@@ -31,6 +31,11 @@ class CatalogoService:
         avaliados = [l for l in self.__repo.livros if self.media(l) is not None]
         return sorted(avaliados, key=self.media, reverse=True)[:quantidade]
 
+    def livro_do_dia(self, dia):
+        """Um livro por dia: o mesmo o dia inteiro, e outro no dia seguinte."""
+        livros = self.__repo.livros
+        return livros[dia.toordinal() % len(livros)]
+
     def generos(self):
         return [g.nome for g in self.__repo.generos]
 

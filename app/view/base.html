@@ -18,8 +18,8 @@
     <a class="perfil" href="{{ url_for('sair') }}" title="Sair"><span class="avatar">{{ usuario.nome[0] }}</span> {{ usuario.nome }}</a>
   </header>
   {% endif %}
-  <main>
-    {% for mensagem in get_flashed_messages() %}<p class="aviso">{{ mensagem }}</p>{% endfor %}
+  <main class="{% block classe %}{% endblock %}">
+    {% block avisos %}{% for mensagem in get_flashed_messages() %}<p class="aviso">{{ mensagem }}</p>{% endfor %}{% endblock %}
     {% block conteudo %}{% endblock %}
   </main>
 </body>

@@ -1,6 +1,38 @@
 {% extends "base.html" %}
-{% from "_macros.html" import capa, estrelas %}
+{% from "_macros.html" import capa, miniatura, estrelas %}
 {% block conteudo %}
+<section class="saudacao">
+  <h1>Olá, {{ usuario.nome }}.</h1>
+  <p class="mudo">O que vamos ler hoje?</p>
+</section>
+
+<div class="topo-inicio">
+  <article class="cartao destaque">
+    {{ capa(destaque, texto=False) }}
+    <div>
+      <p class="rotulo">Livro do dia</p>
+      <h2>{{ destaque.nome }}</h2>
+      <p class="autora">{{ destaque.autora.nome }}</p>
+      <p class="mudo">{{ destaque.ano }} · {{ destaque.genero.nome }} · {{ destaque.editora.nome }}</p>
+      <p>{{ destaque.sinopse }}</p>
+      <p class="nota">{{ estrelas(media(destaque)) }}</p>
+      <a class="botao verde" href="{{ url_for('livro', id_livro=destaque.id) }}">Ver livro</a>
+      {% if na_estante %}<span class="mudo">Já está na sua estante</span>{% endif %}
+    </div>
+  </article>
+
+  <section class="cartao resumo">
+    <h2>Sua estante</h2>
+    <div class="contadores">
+      <div><b>{{ resumo.total }}</b>total</div>
+      <div><b>{{ resumo.favoritos }}</b>favoritos</div>
+      <div><b>{{ resumo.quero_ler }}</b>quero ler</div>
+    </div>
+    {% if resumo.total == 0 %}<p class="mudo">Sua estante está vazia. Abra um livro e marque o primeiro.</p>{% endif %}
+    <a href="{{ url_for('estante') }}">Abrir minha estante →</a>
+  </section>
+</div>
+
 <h3 class="rotulo">Populares esta semana</h3>
 <div class="prateleira">
   {% for livro in populares %}
@@ -8,29 +40,20 @@
   {% endfor %}
 </div>
 
-<div class="duas-colunas">
-  <section class="cartao">
-    <h2>Diário recente</h2>
-    {% for tipo, item in diario %}
-    <div class="evento">
-      <span class="miniatura cor{{ item.livro.id % 6 }}"></span>
-      <div>
-        <strong>{{ item.usuario.nome }} {{ tipo }} <a href="{{ url_for('livro', id_livro=item.livro.id) }}">{{ item.livro.nome }}</a>
-          {% if tipo == 'avaliou' %}· <span class="estrelas">{{ '★' * item.nota }}</span>
-          {% else %}· {{ item.numero_likes }} curtidas{% endif %}</strong>
-        <p>{{ item.comentario if tipo == 'avaliou' else item.texto }}</p>
-      </div>
+<section class="cartao">
+  <h2>Diário recente</h2>
+  <div class="diario">
+  {% for tipo, item in diario %}
+  <div class="evento">
+    {{ miniatura(item.livro) }}
+    <div>
+      <strong>{{ item.usuario.nome }} {{ tipo }} <a href="{{ url_for('livro', id_livro=item.livro.id) }}">{{ item.livro.nome }}</a>
+        {% if tipo == 'avaliou' %}· <span class="estrelas">{{ '★' * item.nota }}</span>
+        {% else %}· {{ item.numero_likes }} curtidas{% endif %}</strong>
+      <p>{{ item.comentario if tipo == 'avaliou' else item.texto }}</p>
     </div>
-    {% endfor %}
-  </section>
-
-  <section class="cartao">
-    <h2>Sua estante</h2>
-    <div class="contadores">
-      <div><b>{{ resumo.total }}</b>total</div>
-      <div><b>{{ resumo.favoritos }}</b>favoritos</div>
-      <div><b>{{ resumo.quero_ler }}</b>quero ler</div>
-    </div>
-  </section>
-</div>
+  </div>
+  {% endfor %}
+  </div>
+</section>
 {% endblock %}

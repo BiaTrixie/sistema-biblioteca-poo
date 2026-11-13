@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import estrelas %}
+{% from "_macros.html" import miniatura, estrelas %}
 {% block titulo %}Buscar — estante{% endblock %}
 {% block conteudo %}
 <h3 class="rotulo">Catálogo</h3>
@@ -18,7 +18,7 @@
 
 {% for livro in livros %}
 <a class="linha-livro" href="{{ url_for('livro', id_livro=livro.id) }}">
-  <span class="miniatura cor{{ livro.id % 6 }}"></span>
+  {{ miniatura(livro) }}
   <div>
     <strong>{{ livro.nome }}</strong>
     <p class="mudo">{{ livro.ano }} · {{ livro.genero.nome }} · {{ livro.editora.nome }} · {{ livro.autora.nome }}</p>

@@ -1,3 +1,6 @@
+from datetime import date
+from pathlib import Path
+
 from flask import abort, flash, redirect, render_template, request, session, url_for
 
 from app import app, sistema
@@ -11,6 +14,15 @@ def usuario_logado():
 def dados_das_paginas():
     """Deixa o usuário e a função da média disponíveis em todos os templates."""
     return {"usuario": usuario_logado(), "media": sistema.catalogo.media}
+
+
+@app.template_global()
+def capa_url(livro):
+    """Endereço da capa do livro (static/img/capas/<id>.svg); sem arquivo, usa a capa padrão."""
+    nome = f"img/capas/{livro.id}.svg"
+    if not (Path(app.static_folder) / nome).exists():
+        nome = "img/capas/padrao.svg"
+    return url_for("static", filename=nome)
 
 
 @app.before_request
@@ -65,8 +77,11 @@ def sair():
 
 @app.route("/")
 def inicio():
+    destaque = sistema.catalogo.livro_do_dia(date.today())
     return render_template(
         "inicio.html",
+        destaque=destaque,
+        na_estante=sistema.estante.registro(usuario_logado(), destaque) is not None,
         populares=sistema.catalogo.populares(),
         diario=sistema.avaliacao.diario_recente(),
         resumo=sistema.estante.resumo(usuario_logado()),

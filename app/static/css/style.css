@@ -8,6 +8,7 @@ body { margin: 0; background: var(--fundo); color: var(--texto); font-family: In
 a { color: var(--azul); text-decoration: none; }
 h1, h2, h3, .logo { font-family: Georgia, serif; }
 main { max-width: 1280px; margin: 0 auto; padding: 24px 32px; }
+main.cheio { max-width: none; padding: 0; }
 
 /* topo */
 .topo { display: flex; align-items: center; gap: 40px; padding: 14px 32px; background: #1a2129; border-bottom: 1px solid var(--borda); }
@@ -36,7 +37,7 @@ label { display: block; color: var(--mudo); font-weight: 600; font-size: 13px; m
 label input, label textarea { margin-top: 6px; }
 
 /* entrar e criar conta */
-.entrada { display: grid; grid-template-columns: 1fr 1fr; min-height: 80vh; margin: -24px -32px; }
+.entrada { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
 .apresentacao { background: #10241e; padding: 80px 60px; }
 .apresentacao h1 { font-size: 56px; font-style: italic; line-height: 1.05; margin: 90px 0 24px; }
 .apresentacao p:last-child { color: #a9c9bb; font-size: 20px; max-width: 480px; }
@@ -46,25 +47,36 @@ label input, label textarea { margin-top: 6px; }
 .centralizado { max-width: 760px; margin: 40px auto; background: var(--cartao); border: 1px solid var(--borda); border-radius: 16px; padding: 36px; }
 
 /* capas e prateleira */
-.prateleira { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 36px; }
-.capa { width: 206px; height: 297px; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; justify-content: flex-end; color: var(--texto); box-shadow: 0 8px 20px #0006; }
-.capa small { text-transform: uppercase; letter-spacing: .1em; font-size: 12px; font-weight: 700; opacity: .8; }
-.capa strong { font-family: Georgia, serif; font-size: 24px; font-weight: normal; margin: 4px 0; }
-.capa span { font-size: 13px; opacity: .8; }
-.cor0 { background: #1f3d33; } .cor1 { background: #4b3245; } .cor2 { background: #1f3a5c; }
-.cor3 { background: #5b2433; } .cor4 { background: #3f3522; } .cor5 { background: #3b3027; }
+.prateleira { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 22px; margin-bottom: 36px; }
+.capa { display: flex; flex-direction: column; justify-content: flex-end; width: 100%; aspect-ratio: 2 / 3; padding: 16px; border-radius: 10px; color: var(--texto); box-shadow: 0 8px 20px #0006;
+  background: linear-gradient(180deg, transparent 45%, rgba(6, 8, 12, .9)), var(--img) center / cover, var(--cartao); }
+.capa.sem-texto { background: var(--img) center / cover, var(--cartao); }
+.capa small { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: 700; opacity: .85; }
+.capa strong { font-family: Georgia, serif; font-size: 20px; font-weight: normal; margin: 4px 0; line-height: 1.15; }
+.capa span { font-size: 13px; opacity: .85; }
 .nota { margin: 8px 0 0; }
 .marcas span { display: inline-block; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 12px; margin: 8px 6px 0 0; }
 .marcas .verde { background: #12301f; color: var(--verde); }
 .marcas .laranja { background: #3a2a1f; color: var(--laranja); }
+.miniatura { flex: none; width: 58px; height: 86px; border-radius: 6px; background: var(--img) center / cover, var(--cartao); }
 
 /* início */
-.duas-colunas { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; }
+.saudacao h1 { font-size: 40px; font-weight: normal; margin: 0 0 4px; }
+.topo-inicio { display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin: 22px 0 40px; }
 .cartao { background: var(--cartao); border: 1px solid var(--borda); border-radius: 14px; padding: 22px 26px; }
 .cartao h2 { margin: 0 0 16px; font-family: Inter, sans-serif; font-size: 20px; }
-.evento { display: flex; gap: 16px; margin-bottom: 18px; }
+.destaque { display: flex; gap: 28px; align-items: center; }
+.destaque .capa { width: 190px; flex: none; }
+.destaque .rotulo { margin-bottom: 6px; color: var(--verde); }
+.destaque h2 { font-family: Georgia, serif; font-size: 34px; font-weight: normal; margin: 0 0 2px; }
+.destaque .nota { margin: 12px 0 16px; }
+.destaque .botao { margin-right: 14px; }
+.resumo { display: flex; flex-direction: column; gap: 6px; }
+.resumo .contadores { margin-bottom: 10px; }
+.diario { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 40px; }
+.evento { display: flex; gap: 14px; }
+.evento .miniatura { width: 44px; height: 66px; }
 .evento p { margin: 4px 0 0; color: #c9d1da; }
-.miniatura { flex: none; width: 58px; height: 86px; border-radius: 6px; }
 .contadores { display: flex; gap: 14px; }
 .contadores div { flex: 1; background: var(--fundo); border-radius: 10px; padding: 14px; color: var(--mudo); }
 .contadores b { display: block; color: var(--texto); font-size: 28px; }
@@ -72,7 +84,8 @@ label input, label textarea { margin-top: 6px; }
 
 /* página do livro */
 .pagina-livro { display: grid; grid-template-columns: 347px 1fr; gap: 50px; }
-.pagina-livro .capa { width: 347px; height: 505px; }
+.pagina-livro .capa { width: 347px; }
+.pagina-livro .capa strong { font-size: 28px; }
 .etiquetas span { display: inline-block; background: #23302c; padding: 6px 14px; border-radius: 16px; font-weight: 600; font-size: 14px; margin-right: 10px; }
 .pagina-livro h1 { font-size: 54px; font-weight: normal; margin: 14px 0 4px; }
 .autora { color: var(--azul); font-size: 22px; font-weight: 700; margin: 0 0 8px; }
@@ -100,8 +113,9 @@ label input, label textarea { margin-top: 6px; }
 .linha-livro .miniatura { width: 66px; height: 96px; }
 
 @media (max-width: 800px) {
-  .entrada, .duas-colunas, .pagina-livro { grid-template-columns: 1fr; margin: 0; }
+  .entrada, .topo-inicio, .pagina-livro, .diario { grid-template-columns: 1fr; }
+  .destaque { flex-direction: column; align-items: flex-start; }
   main { padding: 16px; } .topo { gap: 16px; padding: 12px 16px; }
-  .pagina-livro .capa { width: 206px; height: 297px; }
+  .pagina-livro .capa { width: 206px; }
   .apresentacao { padding: 32px 24px; } .apresentacao h1 { font-size: 36px; margin-top: 24px; }
 }

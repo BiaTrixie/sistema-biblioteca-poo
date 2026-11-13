@@ -1,3 +1,6 @@
+from datetime import date
+
+
 def estrelas(media):
     if media is None:
         return "sem avaliações"
@@ -51,6 +54,10 @@ class MenuPrincipal:
             print(f"Erro: {erro}")
 
     def inicio(self):
+        destaque = self.sistema.catalogo.livro_do_dia(date.today())
+        print(f"\nLIVRO DO DIA: {destaque.nome} — {destaque.autora.nome}")
+        print(f"  {destaque.sinopse}")
+
         print("\nPOPULARES ESTA SEMANA")
         for livro in self.sistema.catalogo.populares():
             media = self.sistema.catalogo.media(livro)

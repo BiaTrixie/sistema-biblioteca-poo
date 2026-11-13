@@ -25,7 +25,7 @@
     <p class="media">
       <b>{{ ('%.1f'|format(nota_media))|replace('.', ',') if nota_media else '—' }}</b>
       {{ estrelas(nota_media) }}
-      <span class="mudo">{{ avaliacoes|length }} avaliação{{ 'ões' if avaliacoes|length != 1 }}</span>
+      <span class="mudo">{{ avaliacoes|length }} {{ 'avaliação' if avaliacoes|length == 1 else 'avaliações' }}</span>
     </p>
 
     <h3 class="rotulo">Comentários</h3>
