@@ -10,7 +10,7 @@ class TesteAvaliacao(unittest.TestCase):
         self.repo = criar_repositorio()
         self.avaliacoes = AvaliacaoService(self.repo)
         self.catalogo = CatalogoService(self.repo)
-        self.ana, self.beto, _ = self.repo.usuarios
+        self.ana, self.beto = self.repo.usuarios[:2]
         self.hobbit = self.repo.livros[0]
 
     def test_avaliar_recalcula_a_media(self):  # R12

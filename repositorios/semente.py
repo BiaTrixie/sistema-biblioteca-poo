@@ -10,14 +10,35 @@ from modelos.livro import Livro
 from modelos.usuario import Usuario
 from repositorios.repositorio_memoria import RepositorioMemoria
 
-# nome, ano, genero, editora, autora
+# nome, ano, gênero, editora, autora, sinopse (os 3 últimos livros são inventados)
 LIVROS = [
-    ("O Hobbit", 1937, "Fantasia", "HarperCollins", "J. R. R. Tolkien"),
-    ("Orgulho e Preconceito", 1813, "Romance", "Companhia das Letras", "Jane Austen"),
-    ("Cem Anos de Solidão", 1967, "Realismo", "Record", "Gabriel García Márquez"),
-    ("A Hora da Estrela", 1977, "Ficção", "Rocco", "Clarice Lispector"),
-    ("O Nome do Vento", 2007, "Fantasia", "Arqueiro", "Patrick Rothfuss"),
-    ("Circe", 2018, "Mitologia", "Bloomsbury", "Madeline Miller"),
+    ("O Hobbit", 1937, "Fantasia", "HarperCollins", "J. R. R. Tolkien",
+     "Um hobbit parte em uma aventura. Bilbo Bolseiro deixa o Condado, atravessa "
+     "terras desconhecidas e descobre que coragem também cabe numa casa pequena."),
+    ("Orgulho e Preconceito", 1813, "Romance", "Companhia das Letras", "Jane Austen",
+     "Elizabeth Bennet e o orgulhoso Sr. Darcy aprendem, entre bailes e mal-entendidos, "
+     "que a primeira impressão quase nunca é a última."),
+    ("Cem Anos de Solidão", 1967, "Realismo", "Record", "Gabriel García Márquez",
+     "A saga da família Buendía em Macondo, uma vila onde o extraordinário acontece "
+     "todo dia e a solidão atravessa as gerações."),
+    ("A Hora da Estrela", 1977, "Ficção", "Rocco", "Clarice Lispector",
+     "Macabéa, uma jovem nordestina no Rio de Janeiro, leva uma vida pequena sem "
+     "perceber o quanto ela importa."),
+    ("O Nome do Vento", 2007, "Fantasia", "Arqueiro", "Patrick Rothfuss",
+     "Kvothe, músico lendário e dono de uma taverna pacata, conta a própria história: "
+     "da infância numa trupe de artistas ao mistério dos nomes das coisas."),
+    ("Circe", 2018, "Mitologia", "Bloomsbury", "Madeline Miller",
+     "Filha de um deus, Circe é exilada numa ilha e descobre, na solidão, "
+     "o poder das ervas e da feitiçaria."),
+    ("O Canto das Baleias", 2019, "Natureza", "Maré Alta", "Helena Maré",
+     "Uma bióloga marinha passa um inverno no oceano gravando o canto das baleias "
+     "e descobre que elas guardam a memória do mar."),
+    ("A Floresta que Lembra", 2015, "Natureza", "Copa Editorial", "Iara Cedro",
+     "Numa floresta antiga, uma guarda-florestal aprende com as árvores, ligadas "
+     "por raízes, que ninguém cresce sozinho."),
+    ("Poeira de Estrelas", 2021, "Ciência", "Órbita Livros", "Sofia Órbita",
+     "Do Big Bang ao seu corpo: um passeio pelo cosmos que mostra que os átomos "
+     "de cada pessoa nasceram dentro de estrelas."),
 ]
 
 
@@ -30,7 +51,7 @@ def criar_repositorio():
     """Monta o repositório com os mesmos dados que aparecem no protótipo."""
     repo = RepositorioMemoria()
 
-    for nome, ano, nome_genero, nome_editora, nome_autora in LIVROS:
+    for nome, ano, nome_genero, nome_editora, nome_autora, sinopse in LIVROS:
         genero = _achar(repo.generos, nome_genero)
         if genero is None:
             genero = Genero(repo.proximo_id(repo.generos), nome_genero)
@@ -48,22 +69,17 @@ def criar_repositorio():
 
         editora.adicionar_autora(autora)
         autora.adicionar_editora(editora)
-        sinopse = f"{nome}, de {nome_autora}."
         repo.livros.append(
             Livro(repo.proximo_id(repo.livros), nome, ano, genero, sinopse, "1ª", editora, autora)
         )
 
-    repo.livros[0].sinopse = (
-        "Um hobbit parte em uma aventura. Bilbo Bolseiro deixa o Condado, atravessa "
-        "terras desconhecidas e descobre que coragem também cabe numa casa pequena."
-    )
-
     ana = Usuario(1, "Ana", "ana@email.com", "123456")
     beto = Usuario(2, "Beto", "beto@email.com", "123456")
     carla = Usuario(3, "Carla", "carla@email.com", "123456")
-    repo.usuarios.extend([ana, beto, carla])
+    roberto = Usuario(4, "Roberto", "roberto@email.com", "123456")
+    repo.usuarios.extend([ana, beto, carla, roberto])
 
-    hobbit, orgulho, cem_anos, hora, nome_vento, circe = repo.livros
+    hobbit, orgulho, cem_anos, hora, nome_vento, circe, baleias, floresta, cosmos = repo.livros
 
     # Estante da Ana: 6 livros, 2 favoritos, 3 quero ler (como na tela "Minha estante")
     registros = [
@@ -89,6 +105,11 @@ def criar_repositorio():
         (beto, nome_vento, 4, date(2026, 9, 17), ""),
         (carla, nome_vento, 5, date(2026, 9, 18), ""),
         (carla, circe, 5, date(2026, 9, 16), ""),
+        (beto, baleias, 5, date(2026, 10, 2), "Fiquei horas ouvindo as gravações do livro."),
+        (carla, baleias, 4, date(2026, 10, 3), ""),
+        (carla, floresta, 4, date(2026, 10, 5), ""),
+        (roberto, cosmos, 5, date(2026, 10, 8), "Faz a gente se sentir pequeno e feliz."),
+        (beto, cosmos, 4, date(2026, 10, 9), ""),
     ]
     for usuario, livro, nota, data, texto in avaliacoes:
         id_novo = repo.proximo_id(repo.avaliacoes)

@@ -8,7 +8,7 @@ class TesteEstante(unittest.TestCase):
     def setUp(self):
         self.repo = criar_repositorio()
         self.estante = EstanteService(self.repo)
-        self.ana, self.beto, _ = self.repo.usuarios
+        self.ana, self.beto = self.repo.usuarios[:2]
         self.hobbit = self.repo.livros[0]
 
     def test_status_vale_so_para_quem_marcou(self):  # R9
