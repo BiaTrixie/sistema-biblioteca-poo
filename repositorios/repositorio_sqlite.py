@@ -86,7 +86,11 @@ class RepositorioSQLite(Repositorio):
         self.__conexao = sqlite3.connect(caminho, check_same_thread=False, isolation_level=None)
         self.__conexao.row_factory = sqlite3.Row
         self.__conexao.execute("PRAGMA foreign_keys = ON")
-        self.__preparar_banco(caminho)
+        try:
+            self.__preparar_banco(caminho)
+        except Exception:
+            self.__conexao.close()  # não deixa a conexão aberta se o arquivo for recusado
+            raise
 
     def fechar(self):
         self.__conexao.close()

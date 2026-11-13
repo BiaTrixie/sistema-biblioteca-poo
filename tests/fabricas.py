@@ -1,3 +1,5 @@
+import unittest
+
 from repositorios.repositorio_memoria import RepositorioMemoria
 from repositorios.repositorio_sqlite import RepositorioSQLite
 from repositorios.semente import criar_repositorio
@@ -8,4 +10,6 @@ def repo_memoria():
 
 
 def repo_sqlite():
-    return criar_repositorio(RepositorioSQLite(":memory:"))
+    repo = RepositorioSQLite(":memory:")
+    unittest.addModuleCleanup(repo.fechar)  # fecha a conexão quando o arquivo de testes terminar
+    return criar_repositorio(repo)
