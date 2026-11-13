@@ -2,27 +2,18 @@
 
 Use este guia para entender o sistema e apresentá-lo. Leia de cima para baixo: primeiro a visão geral, depois as pastas, depois um caminho completo, depois arquivo por arquivo.
 
-┌──────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│    Passo     │                                                     Resultado                                                     │
-├──────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│              │ Autora estava copiada de Editora e quebrava o main.py. Corrigi isso, tirei lido de Livro (agora fica em Estante), │
-│ 1. Modelos   │  corrigi o bug dos likes e fiz Avaliacao e Comentario guardarem usuário e livro. A nota fora de 1 a 5 agora é     │
-│              │ recusada.                                                                                                         │
-├──────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 2.           │ Listas em memória, com a semente dos 6 livros do protótipo. A estante da Ana dá 6 total, 2 favoritos e 3 quero    │
-│ Repositório  │ ler, como na tela.                                                                                                │
-├──────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 3. Serviços  │ Conta, catálogo, estante e avaliação, mais o padrão Strategy em servicos/filtros.py.                              │
-├──────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 4. Terminal  │ python3 main.py percorre o roteiro completo.                                                                      │
-├──────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 5. Flask     │ As 6 telas, no formato do professor (app/, view/, static/).                                                       │
-├──────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 6. UML       │ docs/uml/diagrama_de_classes.md, em Mermaid.                                                                      │
-├──────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 7. Guia      │ guia_de_estudos.md, no formato que você elogiou, com as 10 perguntas da revisão respondidas com o nosso código.   │
-└──────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+## Resumo do que foi construído
 
+| Etapa | Resultado |
+|---|---|
+| 1. Modelos | `Autora` restaurada, `lido` movido de `Livro` para `Estante`, bug dos likes corrigido, `Avaliacao` e `Comentario` guardam usuário e livro, nota validada de 1 a 5, `Usuario` com hash de senha |
+| 2. Repositório (DAO) | Interface `Repositorio` com duas implementações: memória (testes) e SQLite em `dados/estante.db`. A semente tem 9 livros (3 inventados), 6 contas e a estante da Ana (6 no total, 2 favoritos, 3 quero ler) |
+| 3. Serviços | Conta, catálogo (com o livro do dia), estante e avaliação, mais o padrão Strategy em `servicos/filtros.py` |
+| 4. Terminal | `python3 main.py` percorre o roteiro completo |
+| 5. Flask | As 6 telas no formato do professor (`app/`, `view/`, `static/`), com capas em SVG |
+| 6. Testes | 55 testes: cada serviço roda com os dois repositórios, mais os testes de persistência |
+| 7. UML | `docs/uml/diagrama_de_classes.md`, em Mermaid: domínio, Strategy, DAO e camadas |
+| 8. Guia | Este arquivo, com as 10 perguntas da revisão respondidas com o nosso código |
 
 ## 1. O que é o sistema
 
