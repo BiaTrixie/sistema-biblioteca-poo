@@ -33,9 +33,9 @@ LIVROS = [
     ("O Canto das Baleias", 2019, "Natureza", "Maré Alta", "Helena Maré",
      "Uma bióloga marinha passa um inverno no oceano gravando o canto das baleias "
      "e descobre que elas guardam a memória do mar."),
-    ("A Floresta que Lembra", 2015, "Natureza", "Copa Editorial", "Iara Cedro",
-     "Numa floresta antiga, uma guarda-florestal aprende com as árvores, ligadas "
-     "por raízes, que ninguém cresce sozinho."),
+    ("Curiosidades das Árvores", 2015, "Natureza", "Copa Editorial", "Iara Cedro",
+     "Por que as árvores têm anéis? Elas conversam pelas raízes? Curiosidades curtas "
+     "sobre como as árvores vivem, se comunicam e envelhecem."),
     ("Poeira de Estrelas", 2021, "Ciência", "Órbita Livros", "Sofia Órbita",
      "Do Big Bang ao seu corpo: um passeio pelo cosmos que mostra que os átomos "
      "de cada pessoa nasceram dentro de estrelas."),
@@ -77,7 +77,9 @@ def criar_repositorio():
     beto = Usuario(2, "Beto", "beto@email.com", "123456")
     carla = Usuario(3, "Carla", "carla@email.com", "123456")
     roberto = Usuario(4, "Roberto", "roberto@email.com", "123456")
-    repo.usuarios.extend([ana, beto, carla, roberto])
+    juliana = Usuario(5, "Juliana", "juliana@email.com", "123456")
+    lucas = Usuario(6, "Lucas Arruda", "lucas@email.com", "123456")
+    repo.usuarios.extend([ana, beto, carla, roberto, juliana, lucas])
 
     hobbit, orgulho, cem_anos, hora, nome_vento, circe, baleias, floresta, cosmos = repo.livros
 
@@ -110,6 +112,7 @@ def criar_repositorio():
         (carla, floresta, 4, date(2026, 10, 5), ""),
         (roberto, cosmos, 5, date(2026, 10, 8), "Faz a gente se sentir pequeno e feliz."),
         (beto, cosmos, 4, date(2026, 10, 9), ""),
+        (juliana, baleias, 5, date(2026, 10, 12), "É o melhor livro que já li na minha vida."),
     ]
     for usuario, livro, nota, data, texto in avaliacoes:
         id_novo = repo.proximo_id(repo.avaliacoes)
@@ -121,5 +124,8 @@ def criar_repositorio():
     repo.comentarios.append(
         Comentario(2, "Um livro curto que fica o mês inteiro na cabeça.",
                    date(2026, 9, 24), ana, hora, numero_likes=12)
+    )
+    repo.comentarios.append(
+        Comentario(3, "Eu amo árvores, oh my god.", date(2026, 10, 11), lucas, floresta)
     )
     return repo
