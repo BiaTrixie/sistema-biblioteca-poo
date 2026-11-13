@@ -10,8 +10,8 @@ Use este guia para entender o sistema e apresentá-lo. Leia de cima para baixo: 
 | 2. Repositório (DAO) | Interface `Repositorio` com duas implementações: memória (testes) e SQLite em `dados/estante.db`. A semente tem 9 livros (3 inventados), 6 contas e a estante da Ana (6 no total, 2 favoritos, 3 quero ler) |
 | 3. Serviços | Conta, catálogo (com o livro do dia), estante e avaliação, mais o padrão Strategy em `servicos/filtros.py` |
 | 4. Terminal | `python3 main.py` percorre o roteiro completo |
-| 5. Flask | As 6 telas no formato do professor (`app/`, `view/`, `static/`), com capas em SVG |
-| 6. Testes | 55 testes: cada serviço roda com os dois repositórios, mais os testes de persistência |
+| 5. Flask | As 6 telas no formato do professor (`app/`, `view/`, `static/`), com capas em SVG, mais a tela de perfil com a opção de sair |
+| 6. Testes | 69 testes: cada serviço roda com os dois repositórios, mais os testes de persistência e de migração do banco |
 | 7. UML | `docs/uml/diagrama_de_classes.md`, em Mermaid: domínio, Strategy, DAO e camadas |
 | 8. Guia | Este arquivo, com as 10 perguntas da revisão respondidas com o nosso código |
 
@@ -70,9 +70,9 @@ O terminal faz o mesmo caminho a partir do passo 3. O passo 3 em diante é idên
 | `usuario.py` | Pessoa com conta | Valida e-mail e senha no construtor. Guarda só o **hash** da senha (`senha_protegida`), nunca a senha; `verificar_senha` compara usando o hash |
 | `livro.py` | Um livro do acervo | Tem gênero, editora e autora. Não sabe se foi lido: isso é da `Estante` |
 | `genero.py`, `editora.py`, `autora.py` | Dados do livro | `Editora` e `Autora` se conhecem (agregação) |
-| `estante.py` | A ficha de uma pessoa sobre um livro | Guarda `lido`, `favorito` e `quer_ler`. Uma ficha por par usuário e livro |
+| `estante.py` | A ficha de uma pessoa sobre um livro | Guarda `lido`, `favorito` e `quer_ler`. Uma ficha por par usuário e livro. **Lido e quero ler não ficam juntos**: marcar um desmarca o outro (a própria classe garante) |
 | `avaliacao.py` | Nota de 1 a 5 de uma pessoa sobre um livro | Valida a nota no construtor e no setter |
-| `comentario.py` | Texto de uma pessoa sobre um livro | Tem `curtir()` que soma 1 |
+| `comentario.py` | Texto de uma pessoa sobre um livro | Guarda **quem** curtiu (um conjunto de ids), então cada pessoa conta uma vez: `alternar_curtida` curte e, se clicar de novo, desfaz. `substituir` troca o texto e zera as curtidas |
 
 Todas usam atributos privados (`self.__nome`) e `@property`. É o encapsulamento: de fora ninguém mexe direto no dado, só pelo caminho que a classe oferece e valida.
 
@@ -94,7 +94,7 @@ Por que existe: os serviços só conhecem a interface `Repositorio`, não sabem 
 | `conta_service.py` | Cadastro (e-mail único) e login |
 | `catalogo_service.py` | Listar, buscar, média das notas, populares e o livro do dia (um por dia, pela data) |
 | `estante_service.py` | Marcar e desmarcar status, listar por filtro, contadores |
-| `avaliacao_service.py` | Avaliar (uma por pessoa), comentar, curtir, diário recente |
+| `avaliacao_service.py` | Avaliar (uma por pessoa), comentar (um por pessoa e livro: o novo sobrescreve), curtir (uma por pessoa), diário recente e a atividade do perfil |
 | `filtros.py` | O padrão Strategy (próxima seção) |
 | `sistema.py` | Abre o banco (`dados/estante.db`), enche com a semente no primeiro uso e monta os serviços. Terminal e Flask usam esta classe |
 
@@ -102,9 +102,9 @@ Por que existe: os serviços só conhecem a interface `Repositorio`, não sabem 
 
 | Arquivo | O que faz |
 |---|---|
-| `menus/menu_principal.py` | Menu de terminal: pergunta, chama o serviço, imprime |
+| `menus/menu_principal.py` | Menu de terminal: pergunta, chama o serviço, imprime. Tem "Meu perfil", onde também dá para sair da conta |
 | `app/__init__.py` | Cria o `app` Flask. `template_folder="view"` é como no exemplo do professor |
-| `app/rotas.py` | Uma função por tela ou ação. Lê o formulário, chama o serviço, escolhe a página |
+| `app/rotas.py` | Uma função por tela ou ação. Lê o formulário, chama o serviço, escolhe a página. `/perfil` mostra os dados da conta e `/sair` (só POST) encerra a sessão |
 | `app/view/*.html` | As telas. `base.html` é o esqueleto (topo e mensagens); as outras o estendem |
 | `app/static/css/style.css` | Tema escuro e verde do protótipo |
 | `app/static/img/capas/N.svg` | Capa do livro de id N, desenhada à mão em SVG (sem texto; o título é escrito pelo HTML por cima). Livro sem arquivo usa `padrao.svg` |
@@ -176,12 +176,12 @@ Dois cuidados que o SQLite exigiu e que valem na apresentação:
 - **Objeto novo a cada leitura.** Ao ler do banco, `Usuario` e `Livro` são reconstruídos, então dois objetos "iguais" não são o mesmo objeto na memória. Por isso o sistema compara por `id`, nunca por identidade (`is`).
 - **Os testes rodam nos dois repositórios.** Cada teste de serviço executa com `RepositorioMemoria` e com `RepositorioSQLite`; se os dois passam, os serviços de fato não dependem de onde os dados estão.
 
-Se os colegas mudarem as classes e as tabelas, o arquivo antigo fica incompatível: o programa avisa e pede para apagar `dados/estante.db`. Não apaga sozinho, para não destruir contas.
+As tabelas têm um número de versão (`user_version`). Ao abrir um arquivo de versão mais antiga, o programa **migra** os dados para o formato novo sem perder contas (a migração da versão 1 para a 2 aplicou as regras de curtida e comentário aos dados que já existiam). Se o arquivo for de uma versão que o código não conhece, o programa recusa e pede para apagar `dados/estante.db`, sem apagar sozinho.
 
 ## 9. Limitações conhecidas
 
 - Os dados são locais (seção 8): dois computadores nunca compartilham contas. Compartilhar exigiria um banco em servidor.
-- Não há migração de banco: se as tabelas mudarem, é preciso apagar `dados/estante.db` e perder as contas criadas nele.
+- A migração do banco existe só da versão 1 para a 2. Nela, as curtidas antigas (que eram só um número, sem saber de quem) foram zeradas. Outras mudanças de tabela exigirão uma nova migração.
 - A senha usa hash, mas as contas da semente têm todas a senha `123456` (e o mesmo hash), só para demonstração.
 - A chave da sessão do Flask está escrita no código. Aceitável num trabalho acadêmico.
 - No protótipo, a busca "fantasia" mostra Circe (Mitologia), mas a busca real só devolve os 2 livros de fantasia. O desenho tinha essa inconsistência.

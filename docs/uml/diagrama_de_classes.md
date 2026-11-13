@@ -53,8 +53,10 @@ classDiagram
         -int id
         -str texto
         -date data
-        -int numero_likes
-        +curtir()
+        -set curtidas
+        +alternar_curtida(usuario)
+        +curtido_por(usuario) bool
+        +substituir(texto, data)
     }
 
     Livro "*" --> "1" Genero
@@ -67,6 +69,7 @@ classDiagram
     Avaliacao "*" --> "1" Livro
     Comentario "*" --> "1" Usuario
     Comentario "*" --> "1" Livro
+    Comentario "*" --> "*" Usuario : curtido por
 ```
 
 Leitura rápida das setas:
@@ -130,6 +133,7 @@ classDiagram
         +listar_livros() list
         +buscar_registro(usuario, livro) Estante
         +listar_avaliacoes(livro) list
+        +buscar_comentario_de(usuario, livro) Comentario
     }
     class RepositorioMemoria {
         -dados
