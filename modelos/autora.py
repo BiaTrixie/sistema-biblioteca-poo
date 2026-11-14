@@ -1,8 +1,8 @@
-class Editora:
+class Autora:
     def __init__(self, id: int, nome: str) -> None:
         self.__id = id
         self.__nome = self.__validar_nome(nome)
-        self.__autores: list["Autora"] = []
+        self.__editoras: list["Editora"] = []
 
     @property
     def id(self) -> int:
@@ -13,21 +13,21 @@ class Editora:
         return self.__nome
 
     @property
-    def autores(self) -> list["Autora"]:
-        return self.__autores
+    def editoras(self) -> list["Editora"]:
+        return self.__editoras
 
-    def adicionar_autora(self, autora: "Autora") -> None:
-        self.__autores.append(autora)
+    def adicionar_editora(self, editora: "Editora") -> None:
+        self.__editoras.append(editora)
 
-    def remover_autora(self, autora: "Autora") -> None:
-        if autora not in self.__autores:
-            raise ValueError("autora não vinculada a esta editora")
-        self.__autores.remove(autora)
+    def remover_editora(self, editora: "Editora") -> None:
+        if editora not in self.__editoras:
+            raise ValueError("editora não vinculada a esta autora")
+        self.__editoras.remove(editora)
 
     def __validar_nome(self, nome: str) -> str:
         nome_limpo = nome.strip()
         if not nome_limpo:
-            raise ValueError("nome da editora é obrigatório")
+            raise ValueError("nome da autora é obrigatório")
         return nome_limpo
 
     def __str__(self) -> str:

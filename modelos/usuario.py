@@ -1,3 +1,6 @@
+from werkzeug.security import check_password_hash, generate_password_hash
+
+
 class Usuario:
     def __init__(
         self,
@@ -6,11 +9,14 @@ class Usuario:
         email: str,
         senha: str,
         admin: bool = False,
+        protegida: bool = False,
     ) -> None:
         self.__id = self.__validar_id(id)
         self.__nome = self.__validar_texto(nome, "nome de usuário é obrigatório")
         self.__email = self.__validar_email(email)
-        self.__senha = self.__validar_texto(senha, "senha é obrigatória")
+        senha = self.__validar_texto(senha, "senha é obrigatória")
+        # protegida=True: a senha já veio como hash (lida do banco), então não refaz o hash
+        self.__senha = senha if protegida else generate_password_hash(senha)
         self.__admin = self.__validar_admin(admin)
 
     @property
@@ -29,6 +35,11 @@ class Usuario:
     def admin(self) -> bool:
         return self.__admin
 
+    @property
+    def senha_protegida(self) -> str:
+        """O hash da senha, que é o que se grava no banco. A senha em si ninguém lê."""
+        return self.__senha
+
     def atualizar_nome(self, nome: str) -> None:
         self.__nome = self.__validar_texto(nome, "nome de usuário é obrigatório")
 
@@ -36,12 +47,12 @@ class Usuario:
         self.__email = self.__validar_email(email)
 
     def verificar_senha(self, senha: str) -> bool:
-        return senha == self.__senha
+        return check_password_hash(self.__senha, senha)
 
     def alterar_senha(self, senha_atual: str, senha_nova: str) -> None:
         if not self.verificar_senha(senha_atual):
             raise ValueError("senha atual incorreta")
-        self.__senha = self.__validar_texto(senha_nova, "senha é obrigatória")
+        self.__senha = generate_password_hash(self.__validar_texto(senha_nova, "senha é obrigatória"))
 
     def __validar_id(self, id: int) -> int:
         if isinstance(id, bool) or not isinstance(id, int) or id < 1:

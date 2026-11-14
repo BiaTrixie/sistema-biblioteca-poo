@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import capa, estrelas %}
+{% block titulo %}{{ livro.nome }} — estante{% endblock %}
+{% block conteudo %}
+{% set lido = registro and registro.lido %}
+{% set favorito = registro and registro.favorito %}
+{% set quer_ler = registro and registro.quer_ler %}
+{% set nota_media = media(livro) %}
+<div class="pagina-livro">
+  {{ capa(livro) }}
+  <section>
+    <p class="etiquetas"><span>{{ livro.genero.nome }}</span><span>{{ livro.edicao }} edição</span><span>{{ livro.editora.nome }}</span></p>
+    <h1>{{ livro.nome }}</h1>
+    <p class="autora">{{ livro.autora.nome }}</p>
+    <p class="mudo">{{ livro.ano }} · Editora {{ livro.editora.nome }}{% if lido %} · lido{% endif %}</p>
+    <p>{{ livro.sinopse }}</p>
+
+    <form class="acoes" method="post" action="{{ url_for('mudar_status', id_livro=livro.id) }}">
+      <button name="status" value="lido" class="botao {{ 'verde' if lido }}">Lido</button>
+      <button name="status" value="favorito" class="botao {{ 'laranja' if favorito }}">Favorito</button>
+      <button name="status" value="quer_ler" class="botao {{ 'laranja' if quer_ler }}">Quero ler</button>
+      <a class="botao" href="{{ url_for('avaliar', id_livro=livro.id) }}">Avaliar</a>
+    </form>
+    <p class="mudo pequeno">Lido e Quero ler não ficam marcados juntos: marcar um desmarca o outro.</p>
+
+    <p class="media">
+      <b>{{ ('%.1f'|format(nota_media))|replace('.', ',') if nota_media else '—' }}</b>
+      {{ estrelas(nota_media) }}
+      <span class="mudo">{{ avaliacoes|length }} {{ 'avaliação' if avaliacoes|length == 1 else 'avaliações' }}</span>
+    </p>
+
+    <h3 class="rotulo">Comentários</h3>
+    {% for c in comentarios %}
+    <div class="comentario">
+      <strong>{{ c.usuario.nome }} · {{ c.data.strftime('%d/%m/%Y') }} · {{ c.numero_likes }} curtidas</strong>
+      <p>{{ c.texto }}</p>
+      <form method="post" action="{{ url_for('curtir', id_comentario=c.id) }}"><button class="link {{ 'curtido' if c.curtido_por(usuario) }}">{{ 'Curtido' if c.curtido_por(usuario) else 'Curtir' }}</button></form>
+    </div>
+    {% endfor %}
+    {% for a in avaliacoes %}
+    <div class="comentario">
+      <strong>{{ a.usuario.nome }} · avaliação · nota {{ a.nota }}</strong>
+      {% if a.comentario %}<p>{{ a.comentario }}</p>{% endif %}
+    </div>
+    {% endfor %}
+
+    <form class="novo-comentario" method="post" action="{{ url_for('comentar', id_livro=livro.id) }}">
+      <textarea name="texto" rows="2" placeholder="Escreva um comentário">{{ meu_comentario.texto if meu_comentario else '' }}</textarea>
+      <button class="botao">{{ 'Atualizar comentário' if meu_comentario else 'Comentar' }}</button>
+    </form>
+    <p class="mudo pequeno">Um comentário por livro: comentar de novo substitui o anterior.</p>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import miniatura, estrelas %}
+{% block titulo %}Buscar — estante{% endblock %}
+{% block conteudo %}
+<h3 class="rotulo">Catálogo</h3>
+<form class="busca" method="get">
+  <input name="q" value="{{ texto }}" placeholder="Título, autora, gênero ou editora">
+  <select name="genero">
+    <option value="">Todos os gêneros</option>
+    {% for g in generos %}<option {{ 'selected' if g == genero }}>{{ g }}</option>{% endfor %}
+  </select>
+  <select name="editora">
+    <option value="">Todas as editoras</option>
+    {% for e in editoras %}<option {{ 'selected' if e == editora }}>{{ e }}</option>{% endfor %}
+  </select>
+  <button class="botao verde">Buscar</button>
+</form>
+
+{% for livro in livros %}
+<a class="linha-livro" href="{{ url_for('livro', id_livro=livro.id) }}">
+  {{ miniatura(livro) }}
+  <div>
+    <strong>{{ livro.nome }}</strong>
+    <p class="mudo">{{ livro.ano }} · {{ livro.genero.nome }} · {{ livro.editora.nome }} · {{ livro.autora.nome }}</p>
+  </div>
+  {{ estrelas(media(livro)) }}
+</a>
+{% else %}
+<p class="mudo">Nenhum livro encontrado.</p>
+{% endfor %}
+{% endblock %}

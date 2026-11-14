@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titulo %}Entrar — estante{% endblock %}
+{% block classe %}cheio{% endblock %}
+{% block avisos %}{% endblock %}
+{% block conteudo %}
+<div class="entrada">
+  <section class="apresentacao">
+    <p class="logo">e<b>s</b>tante</p>
+    <h1>O diário dos seus livros.</h1>
+    <p>Marque o que leu, o que quer ler e o que virou favorito. Como um Letterboxd, só que para a estante.</p>
+  </section>
+  <form class="formulario" method="post">
+    <h2>Entrar</h2>
+    <p class="mudo">Use a conta para comentar, avaliar e organizar a estante.</p>
+    {% for mensagem in get_flashed_messages() %}<p class="aviso">{{ mensagem }}</p>{% endfor %}
+    <label>E-mail <input type="email" name="email" value="ana@email.com" required></label>
+    <label>Senha <input type="password" name="senha" value="123456" required></label>
+    <button class="botao verde">Entrar</button>
+    <a class="centro" href="{{ url_for('cadastro') }}">Criar conta</a>
+  </form>
+</div>
+{% endblock %}
