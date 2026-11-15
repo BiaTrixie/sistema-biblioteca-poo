@@ -5,7 +5,7 @@ class Comentario:
         self.__livro = livro
         self.__texto = texto
         self.__data = data
-        self.__curtidas = set(curtidas)  # ids de quem curtiu: cada pessoa conta uma vez
+        self.__curtidas = set(curtidas)  # ids de quem curtiu: cada pessoa conta uma vez. O set() garante que não haja duplicatas. 
 
     @property
     def id(self):
