@@ -17,6 +17,8 @@ class Autora:
         return self.__editoras
 
     def adicionar_editora(self, editora: "Editora") -> None:
+        if editora in self.__editoras:
+            raise ValueError("editora já vinculada a esta autora")
         self.__editoras.append(editora)
 
     def remover_editora(self, editora: "Editora") -> None:
