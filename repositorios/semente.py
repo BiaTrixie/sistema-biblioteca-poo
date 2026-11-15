@@ -87,7 +87,7 @@ def _semear(repo):
     contas = [("Ana", "ana@email.com"), ("Beto", "beto@email.com"), ("Carla", "carla@email.com"),
               ("Roberto", "roberto@email.com"), ("Juliana", "juliana@email.com"),
               ("Lucas Arruda", "lucas@email.com")]
-    usuarios = [Usuario(i, nome, email, _senha_padrao(), protegida=True)
+    usuarios = [Usuario(i, nome, email, _senha_padrao(), senha_protegida=True)
                 for i, (nome, email) in enumerate(contas, start=1)]
     for usuario in usuarios:
         repo.salvar(usuario)
