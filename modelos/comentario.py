@@ -3,7 +3,7 @@ class Comentario:
         self.__id = id
         self.__usuario = usuario
         self.__livro = livro
-        self.__texto = texto
+        self.__texto = self.__validar_texto(texto)
         self.__data = data
         self.__curtidas = set(curtidas)  # ids de quem curtiu: cada pessoa conta uma vez
 
@@ -11,17 +11,9 @@ class Comentario:
     def id(self):
         return self.__id
 
-    @id.setter
-    def id(self, id):
-        self.__id = id
-
     @property
     def texto(self):
         return self.__texto
-
-    @texto.setter
-    def texto(self, texto):
-        self.__texto = texto
 
     @property
     def usuario(self):
@@ -51,7 +43,7 @@ class Comentario:
 
     def substituir(self, texto, data):
         """Um novo comentário no lugar do antigo; as curtidas eram do texto velho e se perdem."""
-        self.__texto = texto
+        self.__texto = self.__validar_texto(texto)
         self.__data = data
         self.__curtidas.clear()
 
@@ -59,9 +51,10 @@ class Comentario:
     def data(self):
         return self.__data
 
-    @data.setter
-    def data(self, data):
-        self.__data = data
+    def __validar_texto(self, texto):
+        if not isinstance(texto, str) or not texto.strip():
+            raise ValueError("escreva algo no comentário")
+        return texto
 
     def __str__(self):
         return f"[{self.__id}] ({self.__data}) - {self.numero_likes} \n{self.__texto}"
