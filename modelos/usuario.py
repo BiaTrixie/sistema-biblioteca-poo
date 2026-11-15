@@ -9,14 +9,14 @@ class Usuario:
         email: str,
         senha: str,
         admin: bool = False,
-        protegida: bool = False, # Para senha protegida (hash) vinda do banco, não refaz o hash
+        senha_protegida: bool = False, # Para senha protegida (hash) vinda do banco, não refaz o hash
     ) -> None:
         self.__id = self.__validar_id(id)
         self.__nome = self.__validar_texto(nome, "nome de usuário é obrigatório")
         self.__email = self.__validar_email(email)
         senha = self.__validar_texto(senha, "senha é obrigatória")
-        # protegida=True: a senha já veio como hash (lida do banco), então não refaz o hash
-        self.__senha = senha if protegida else generate_password_hash(senha)
+        # senha_protegida=True: a senha já veio como hash (lida do banco), então não refaz o hash
+        self.__senha = senha if senha_protegida else generate_password_hash(senha)
         self.__admin = self.__validar_admin(admin)
 
     @property

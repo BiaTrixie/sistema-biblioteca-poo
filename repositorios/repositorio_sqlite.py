@@ -235,9 +235,9 @@ class RepositorioSQLite(Repositorio):
     # --- usuários ---
 
     def __para_usuario(self, linha):
-        # protegida=True: a senha da linha já é um hash
+        # senha_protegida=True: a senha da linha já é um hash
         return Usuario(linha["id"], linha["nome"], linha["email"], linha["senha"],
-                       bool(linha["admin"]), protegida=True)
+                       bool(linha["admin"]), senha_protegida=True)
 
     def __usuarios_por_id(self):
         return {r["id"]: self.__para_usuario(r) for r in self.__consultar("SELECT * FROM usuarios")}
