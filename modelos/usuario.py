@@ -9,7 +9,7 @@ class Usuario:
         email: str,
         senha: str,
         admin: bool = False,
-        protegida: bool = False,
+        protegida: bool = False, # Para senha protegida (hash) vinda do banco, não refaz o hash
     ) -> None:
         self.__id = self.__validar_id(id)
         self.__nome = self.__validar_texto(nome, "nome de usuário é obrigatório")

@@ -25,7 +25,7 @@ class Comentario:
 
     @property
     def curtidas(self):
-        return frozenset(self.__curtidas)
+        return frozenset(self.__curtidas) # o frozenset() é usado para retornar uma cópia imutável do conjunto de curtidas, garantindo que o conjunto original não seja modificado externamente. Isso ajuda a proteger a integridade dos dados e evita alterações indesejadas no conjunto de curtidas.
 
     @property
     def numero_likes(self):
