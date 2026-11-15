@@ -34,7 +34,7 @@ class Autora:
 
     @property # metodo getter que retorna a lista de editoras associadas à autora. 
     def editoras(self) -> list["Editora"]:
-        return self.__editoras
+        return list(self.__editoras)
 
     def adicionar_editora(self, editora: "Editora") -> None: # recebe um objeto do tipo Editora e adiciona à lista de editoras da autora; levanta ValueError se já estiver presente
         if editora in self.__editoras: # a própria classe garante que não haja editora repetida
@@ -47,7 +47,7 @@ class Autora:
         self.__editoras.remove(editora)
 
     def __validar_nome(self, nome: str) -> str: 
-        nome_limpo = nome.strip() # remove espaços em branco no início e no final do nome, garantindo que o nome não seja apenas espaços em branco
+        nome_limpo = nome.strip() if isinstance(nome, str) else "" # remove espaços em branco no início e no final do nome, garantindo que o nome não seja apenas espaços em branco; se não for texto, vira vazio e cai no erro abaixo
         if not nome_limpo:
             raise ValueError("nome da autora é obrigatório")
         return nome_limpo

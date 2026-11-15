@@ -14,9 +14,11 @@ class Editora:
 
     @property
     def autores(self) -> list["Autora"]:
-        return self.__autores
+        return list(self.__autores)
 
     def adicionar_autora(self, autora: "Autora") -> None:
+        if autora in self.__autores:
+            raise ValueError("autora já vinculada a esta editora")
         self.__autores.append(autora)
 
     def remover_autora(self, autora: "Autora") -> None:
@@ -25,7 +27,7 @@ class Editora:
         self.__autores.remove(autora)
 
     def __validar_nome(self, nome: str) -> str:
-        nome_limpo = nome.strip()
+        nome_limpo = nome.strip() if isinstance(nome, str) else ""
         if not nome_limpo:
             raise ValueError("nome da editora é obrigatório")
         return nome_limpo
