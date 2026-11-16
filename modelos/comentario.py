@@ -37,7 +37,7 @@ class Comentario:
     def alternar_curtida(self, usuario):
         """Curte se a pessoa ainda não curtiu; se já tinha curtido, desfaz."""
         if self.curtido_por(usuario):
-            self.__curtidas.discard(usuario.id)
+            self.__curtidas.discard(usuario.id) #discard remove o id do usuário do conjunto de curtidas, se ele estiver presente. Se o id não estiver presente, não faz nada (não gera erro). Isso é útil para desfazer a curtida de um usuário que já curtiu o comentário.
         else:
             self.__curtidas.add(usuario.id)
 

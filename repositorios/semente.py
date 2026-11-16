@@ -13,6 +13,8 @@ from modelos.livro import Livro
 from modelos.usuario import Usuario
 from repositorios.repositorio_memoria import RepositorioMemoria
 
+# SEMENTE = os dados iniciais do protótipo. Roda uma vez, quando o banco está vazio, para o
+# sistema já abrir com livros, contas, estante e avaliações para mostrar.
 # nome, ano, gênero, editora, autora, sinopse (os 3 últimos livros são inventados)
 LIVROS = [
     ("O Hobbit", 1937, "Fantasia", "HarperCollins", "J. R. R. Tolkien",
@@ -51,6 +53,7 @@ def _senha_padrao():
     return generate_password_hash("123456")
 
 
+# É a porta de entrada: devolve um repositório já com dados. Sem argumento, cria um de memória.
 def criar_repositorio(repo=None):
     """Devolve o repositório pronto. Se estiver vazio, enche com os dados do protótipo."""
     repo = repo or RepositorioMemoria()
@@ -60,6 +63,7 @@ def criar_repositorio(repo=None):
     return repo
 
 
+# Evita duplicar gênero, editora e autora: dois livros de "Fantasia" usam o MESMO objeto Genero.
 def _obter(repo, cache, classe, colecao, nome):
     """Reaproveita o item com esse nome; se for novo, cria e salva."""
     if nome not in cache:
@@ -68,6 +72,8 @@ def _obter(repo, cache, classe, colecao, nome):
     return cache[nome]
 
 
+# Cria e salva tudo, na ordem das dependências: primeiro gênero/editora/autora, depois os livros
+# (que apontam para eles), depois contas, estante, avaliações e comentários.
 def _semear(repo):
     generos, editoras, autoras, livros = {}, {}, {}, []
 
@@ -84,6 +90,7 @@ def _semear(repo):
         livros.append(livro)
 
     # todas as contas da semente usam a senha 123456
+    # (enumerate(..., start=1) numera as contas a partir do id 1)
     contas = [("Ana", "ana@email.com"), ("Beto", "beto@email.com"), ("Carla", "carla@email.com"),
               ("Roberto", "roberto@email.com"), ("Juliana", "juliana@email.com"),
               ("Lucas Arruda", "lucas@email.com")]
@@ -93,8 +100,11 @@ def _semear(repo):
         repo.salvar(usuario)
     ana, beto, carla, roberto, juliana, lucas = usuarios
 
+    # Desempacota a lista: dá um nome a cada livro, na mesma ordem em que estão em LIVROS.
     hobbit, orgulho, cem_anos, hora, nome_vento, circe, baleias, floresta, cosmos = livros
 
+    # Cada tupla é (livro, favorito, quer_ler, lido), mesma ordem do construtor de Estante.
+    # Repare que lido e quer_ler nunca aparecem juntos (a Estante recusaria).
     # Estante da Ana: 6 livros, 2 favoritos, 3 quero ler (como na tela "Minha estante")
     registros = [
         (hobbit, True, False, True),

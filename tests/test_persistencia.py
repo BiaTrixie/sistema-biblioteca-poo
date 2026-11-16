@@ -16,22 +16,24 @@ from servicos.sistema import Sistema
 class TestePersistencia(unittest.TestCase):
     """Coisas que só o SQLite faz: guardar em arquivo e proteger os dados."""
 
-    def setUp(self):
+    def setUp(self): # O método setUp é chamado antes de cada teste para configurar o ambiente de teste. Ele cria um diretório temporário usando tempfile.TemporaryDirectory(), que será usado para armazenar o banco de dados SQLite. Em seguida, ele define o caminho do arquivo do banco de dados como "estante.db" dentro desse diretório temporário. Além disso, ele inicializa uma lista vazia chamada abertos, que será usada para rastrear os repositórios abertos durante os testes.
         self.pasta = tempfile.TemporaryDirectory()
         self.caminho = Path(self.pasta.name) / "estante.db"
         self.abertos = []
 
-    def tearDown(self):
+    def tearDown(self): # O método tearDown é chamado após cada teste para limpar o ambiente de teste. Ele percorre a lista de repositórios abertos (self.abertos) e chama o método fechar() em cada um deles, garantindo que todos os repositórios sejam fechados corretamente. Em seguida, ele chama self.pasta.cleanup() para remover o diretório temporário criado no setUp, liberando os recursos utilizados durante o teste.
         for repo in self.abertos:
             repo.fechar()
         self.pasta.cleanup()
 
-    def abrir(self):
+    def abrir(self): # abri o objeto RepositorioSQLite com o caminho do arquivo de banco de dados temporário. Em seguida, adiciona o repositório à lista self.abertos para que possa ser fechado posteriormente no tearDown. Por fim, retorna o repositório aberto.
         repo = RepositorioSQLite(self.caminho)
         self.abertos.append(repo)
         return repo
 
-    def test_conta_sobrevive_a_reabrir_o_arquivo(self):
+    # a seguir estao os metodos de teste 
+    
+    def test_conta_sobrevive_a_reabrir_o_arquivo(self): 
         Sistema(self.abrir()).conta.cadastrar("Duda", "duda@email.com", "abc123")
         outro = Sistema(self.abrir())  # como se o programa tivesse sido fechado e aberto de novo
         self.assertEqual(outro.conta.entrar("duda@email.com", "abc123").nome, "Duda")
