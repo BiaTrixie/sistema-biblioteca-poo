@@ -2,7 +2,10 @@
 {% block titulo %}Minha estante — estante{% endblock %}
 {% block conteudo %}
 <div class="cabecalho-estante">
-  <div><h3 class="rotulo">Minha estante</h3><h1 id="nome"></h1></div>
+  <div>
+    <h3 class="rotulo">Minha estante</h3>
+    <h1 id="nome"></h1>
+  </div>
   <div class="contadores solto" id="resumo"></div>
 </div>
 <nav class="pilulas" id="filtros"></nav>
@@ -10,34 +13,34 @@
 {% endblock %}
 {% block script %}
 <script>
-exigirLogin();
-montarTopo("estante");
-const filtro = new URLSearchParams(location.search).get("filtro") || "todos";
-const filtros = [["todos", "Todos"], ["lidos", "Lidos"], ["favoritos", "Favoritos"], ["quero-ler", "Quero ler"]];
+  exigirLogin();
+  montarTopo("estante");
+  const filtro = new URLSearchParams(location.search).get("filtro") || "todos";
+  const filtros = [["todos", "Todos"], ["lidos", "Lidos"], ["favoritos", "Favoritos"], ["quero-ler", "Quero ler"]];
 
-function marcas(item) {
-  return `${item.lido ? '<span class="verde">lido</span>' : ""}
+  function marcas(item) {
+    return `${item.lido ? '<span class="verde">lido</span>' : ""}
     ${item.favorito ? '<span class="laranja">favorito</span>' : ""}
     ${item.quer_ler ? '<span class="laranja">quero ler</span>' : ""}`;
-}
+  }
 
-async function carregar() {
-  document.getElementById("nome").textContent = usuarioLocal().nome;
-  document.getElementById("filtros").innerHTML = filtros.map(([chave, nome]) =>
-    `<a class="${filtro === chave ? "ativa" : ""}" href="/estante?filtro=${chave}">${nome}</a>`).join("");
-  const [resumo, registros] = await Promise.all([
-    api("/estante/resumo"),
-    api("/estante?filtro=" + encodeURIComponent(filtro)),
-  ]);
-  document.getElementById("resumo").innerHTML = `
+  async function carregar() {
+    document.getElementById("nome").textContent = usuarioLocal().nome;
+    document.getElementById("filtros").innerHTML = filtros.map(([chave, nome]) =>
+      `<a class="${filtro === chave ? "ativa" : ""}" href="/estante?filtro=${chave}">${nome}</a>`).join("");
+    const [resumo, registros] = await Promise.all([
+      api("/estante/resumo"),
+      api("/estante?filtro=" + encodeURIComponent(filtro)),
+    ]);
+    document.getElementById("resumo").innerHTML = `
     <div><b>${resumo.total}</b>total</div>
     <div><b>${resumo.favoritos}</b>favoritos</div>
     <div><b>${resumo.quero_ler}</b>quero ler</div>`;
-  document.getElementById("livros").innerHTML = registros.length ? registros.map((item) => `
+    document.getElementById("livros").innerHTML = registros.length ? registros.map((item) => `
     <div>${htmlCapa({ id: item.livro_id, nome: item.livro, genero: item.genero, autor: item.autor })}
       <p class="marcas">${marcas(item)}</p></div>`).join("") : '<p class="mudo">Nenhum livro aqui ainda.</p>';
-}
+  }
 
-carregar().catch((erro) => aviso(erro.message));
+  carregar().catch((erro) => aviso(erro.message));
 </script>
 {% endblock %}

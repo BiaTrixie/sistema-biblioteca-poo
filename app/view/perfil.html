@@ -13,10 +13,14 @@
   <section class="cartao">
     <h2>Dados da conta</h2>
     <dl class="dados">
-      <dt>Nome</dt><dd id="dado-nome"></dd>
-      <dt>E-mail</dt><dd id="dado-email"></dd>
-      <dt>Tipo de conta</dt><dd id="tipo"></dd>
-      <dt>Senha</dt><dd>•••••••• <span class="mudo">(guardada protegida, nunca em texto)</span></dd>
+      <dt>Nome</dt>
+      <dd id="dado-nome"></dd>
+      <dt>E-mail</dt>
+      <dd id="dado-email"></dd>
+      <dt>Tipo de conta</dt>
+      <dd id="tipo"></dd>
+      <dt>Senha</dt>
+      <dd>•••••••• <span class="mudo">(guardada protegida, nunca em texto)</span></dd>
     </dl>
   </section>
   <section class="cartao">
@@ -43,23 +47,23 @@
 {% endblock %}
 {% block script %}
 <script>
-exigirLogin();
-montarTopo("perfil");
-document.getElementById("sair").addEventListener("click", () => sair().catch((erro) => aviso(erro.message)));
+  exigirLogin();
+  montarTopo("perfil");
+  document.getElementById("sair").addEventListener("click", () => sair().catch((erro) => aviso(erro.message)));
 
-api("/perfil").then((dados) => {
-  document.getElementById("inicial").textContent = dados.usuario.nome[0];
-  document.getElementById("nome").textContent = dados.usuario.nome;
-  document.getElementById("email").textContent = dados.usuario.email;
-  document.getElementById("dado-nome").textContent = dados.usuario.nome;
-  document.getElementById("dado-email").textContent = dados.usuario.email;
-  document.getElementById("tipo").textContent = dados.usuario.admin ? "Administrador" : "Leitor";
-  document.getElementById("total").textContent = dados.resumo.total;
-  document.getElementById("lidos").textContent = dados.resumo.lidos;
-  document.getElementById("favoritos").textContent = dados.resumo.favoritos;
-  document.getElementById("quero").textContent = dados.resumo.quero_ler;
-  document.getElementById("avaliacoes").textContent = dados.avaliacoes;
-  document.getElementById("comentarios").textContent = dados.comentarios;
-}).catch((erro) => aviso(erro.message));
+  api("/perfil").then((dados) => {
+    document.getElementById("inicial").textContent = dados.usuario.nome[0];
+    document.getElementById("nome").textContent = dados.usuario.nome;
+    document.getElementById("email").textContent = dados.usuario.email;
+    document.getElementById("dado-nome").textContent = dados.usuario.nome;
+    document.getElementById("dado-email").textContent = dados.usuario.email;
+    document.getElementById("tipo").textContent = dados.usuario.admin ? "Administrador" : "Leitor";
+    document.getElementById("total").textContent = dados.resumo.total;
+    document.getElementById("lidos").textContent = dados.resumo.lidos;
+    document.getElementById("favoritos").textContent = dados.resumo.favoritos;
+    document.getElementById("quero").textContent = dados.resumo.quero_ler;
+    document.getElementById("avaliacoes").textContent = dados.avaliacoes;
+    document.getElementById("comentarios").textContent = dados.comentarios;
+  }).catch((erro) => aviso(erro.message));
 </script>
 {% endblock %}

@@ -20,16 +20,16 @@
 {% endblock %}
 {% block script %}
 <script>
-document.getElementById("formulario").addEventListener("submit", async (evento) => {
-  evento.preventDefault();
-  const dados = Object.fromEntries(new FormData(evento.target));
-  try {
-    await api("/contas", { method: "POST", json: dados, publico: true });
-    guardarSessao(await api("/login", { method: "POST", json: dados, publico: true }));
-    location.href = "/";
-  } catch (erro) {
-    aviso(erro.message);
-  }
-});
+  document.getElementById("formulario").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const dados = Object.fromEntries(new FormData(evento.target));
+    try {
+      await api("/contas", { method: "POST", json: dados, publico: true });
+      guardarSessao(await api("/login", { method: "POST", json: dados, publico: true }));
+      location.href = "/";
+    } catch (erro) {
+      aviso(erro.message);
+    }
+  });
 </script>
 {% endblock %}

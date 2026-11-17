@@ -12,36 +12,36 @@
 {% endblock %}
 {% block script %}
 <script>
-exigirLogin();
-montarTopo();
-const id = Number(document.getElementById("formulario").dataset.livro);
+  exigirLogin();
+  montarTopo();
+  const id = Number(document.getElementById("formulario").dataset.livro);
 
-async function carregar() {
-  const [item, avaliacoes] = await Promise.all([
-    api("/livros/" + id),
-    api("/livros/" + id + "/avaliacoes"),
-  ]);
-  const minha = avaliacoes.find((linha) => linha.usuario_id === usuarioLocal().id);
-  const notaAtual = minha ? minha.nota : 5;
-  document.title = "Avaliar " + item.nome + " — estante";
-  document.getElementById("nome").textContent = item.nome;
-  document.getElementById("ficha").textContent = `${item.autor} · ${item.ano} · ${item.genero}`;
-  document.getElementById("texto").value = minha ? minha.comentario : "";
-  document.getElementById("notas").innerHTML = [1, 2, 3, 4, 5].map((n) =>
-    `<label><input type="radio" name="nota" value="${n}" ${n === notaAtual ? "checked" : ""}>${n} ★</label>`).join("");
-}
-
-document.getElementById("formulario").addEventListener("submit", async (evento) => {
-  evento.preventDefault();
-  const dados = Object.fromEntries(new FormData(evento.target));
-  try {
-    await api(`/livros/${id}/avaliacoes`, { method: "POST", json: { nota: Number(dados.nota), texto: dados.texto } });
-    location.href = "/livro/" + id;
-  } catch (erro) {
-    aviso(erro.message);
+  async function carregar() {
+    const [item, avaliacoes] = await Promise.all([
+      api("/livros/" + id),
+      api("/livros/" + id + "/avaliacoes"),
+    ]);
+    const minha = avaliacoes.find((linha) => linha.usuario_id === usuarioLocal().id);
+    const notaAtual = minha ? minha.nota : 5;
+    document.title = "Avaliar " + item.nome + " — estante";
+    document.getElementById("nome").textContent = item.nome;
+    document.getElementById("ficha").textContent = `${item.autor} · ${item.ano} · ${item.genero}`;
+    document.getElementById("texto").value = minha ? minha.comentario : "";
+    document.getElementById("notas").innerHTML = [1, 2, 3, 4, 5].map((n) =>
+      `<label><input type="radio" name="nota" value="${n}" ${n === notaAtual ? "checked" : ""}>${n} ★</label>`).join("");
   }
-});
 
-carregar().catch((erro) => aviso(erro.message));
+  document.getElementById("formulario").addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const dados = Object.fromEntries(new FormData(evento.target));
+    try {
+      await api(`/livros/${id}/avaliacoes`, { method: "POST", json: { nota: Number(dados.nota), texto: dados.texto } });
+      location.href = "/livro/" + id;
+    } catch (erro) {
+      aviso(erro.message);
+    }
+  });
+
+  carregar().catch((erro) => aviso(erro.message));
 </script>
 {% endblock %}

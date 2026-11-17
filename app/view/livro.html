@@ -4,49 +4,49 @@
 {% endblock %}
 {% block script %}
 <script>
-exigirLogin();
-montarTopo();
-const id = Number(document.getElementById("pagina").dataset.livro);
+  exigirLogin();
+  montarTopo();
+  const id = Number(document.getElementById("pagina").dataset.livro);
 
-function dataCurta(iso) {
-  const [ano, mes, dia] = iso.slice(0, 10).split("-");
-  return `${dia}/${mes}/${ano}`;
-}
-
-async function mudar(status) {
-  await api("/estante/" + id, { method: "PATCH", json: { status } });
-  await carregar();
-}
-
-async function comentar(evento) {
-  evento.preventDefault();
-  const texto = new FormData(evento.target).get("texto");
-  try {
-    await api(`/livros/${id}/comentarios`, { method: "POST", json: { texto } });
-    await carregar();
-  } catch (erro) {
-    aviso(erro.message);
+  function dataCurta(iso) {
+    const [ano, mes, dia] = iso.slice(0, 10).split("-");
+    return `${dia}/${mes}/${ano}`;
   }
-}
 
-async function curtir(idComentario) {
-  await api("/comentarios/" + idComentario, { method: "PATCH" });
-  await carregar();
-}
+  async function mudar(status) {
+    await api("/estante/" + id, { method: "PATCH", json: { status } });
+    await carregar();
+  }
 
-async function carregar() {
-  const [item, avaliacoes, comentarios, estante] = await Promise.all([
-    api("/livros/" + id),
-    api("/livros/" + id + "/avaliacoes"),
-    api("/livros/" + id + "/comentarios"),
-    api("/estante"),
-  ]);
-  if (!item) return;
-  document.title = item.nome + " — estante";
-  const registro = estante.find((linha) => linha.livro_id === id);
-  const meu = comentarios.find((linha) => linha.usuario_id === usuarioLocal().id);
-  const media = item.media == null ? "—" : item.media.toFixed(1).replace(".", ",");
-  document.getElementById("pagina").innerHTML = `
+  async function comentar(evento) {
+    evento.preventDefault();
+    const texto = new FormData(evento.target).get("texto");
+    try {
+      await api(`/livros/${id}/comentarios`, { method: "POST", json: { texto } });
+      await carregar();
+    } catch (erro) {
+      aviso(erro.message);
+    }
+  }
+
+  async function curtir(idComentario) {
+    await api("/comentarios/" + idComentario, { method: "PATCH" });
+    await carregar();
+  }
+
+  async function carregar() {
+    const [item, avaliacoes, comentarios, estante] = await Promise.all([
+      api("/livros/" + id),
+      api("/livros/" + id + "/avaliacoes"),
+      api("/livros/" + id + "/comentarios"),
+      api("/estante"),
+    ]);
+    if (!item) return;
+    document.title = item.nome + " — estante";
+    const registro = estante.find((linha) => linha.livro_id === id);
+    const meu = comentarios.find((linha) => linha.usuario_id === usuarioLocal().id);
+    const media = item.media == null ? "—" : item.media.toFixed(1).replace(".", ",");
+    document.getElementById("pagina").innerHTML = `
     ${htmlCapa(item)}
     <section>
       <p class="etiquetas"><span>${esc(item.genero)}</span><span>${esc(item.edicao)} edição</span><span>${esc(item.editora)}</span></p>
@@ -79,15 +79,15 @@ async function carregar() {
       </form>
       <p class="mudo pequeno">Um comentário por livro: comentar de novo substitui o anterior.</p>
     </section>`;
-  document.querySelectorAll("[data-status]").forEach((botao) => {
-    botao.addEventListener("click", () => mudar(botao.dataset.status).catch((erro) => aviso(erro.message)));
-  });
-  document.querySelectorAll("[data-curtir]").forEach((botao) => {
-    botao.addEventListener("click", () => curtir(botao.dataset.curtir).catch((erro) => aviso(erro.message)));
-  });
-  document.getElementById("comentario").addEventListener("submit", comentar);
-}
+    document.querySelectorAll("[data-status]").forEach((botao) => {
+      botao.addEventListener("click", () => mudar(botao.dataset.status).catch((erro) => aviso(erro.message)));
+    });
+    document.querySelectorAll("[data-curtir]").forEach((botao) => {
+      botao.addEventListener("click", () => curtir(botao.dataset.curtir).catch((erro) => aviso(erro.message)));
+    });
+    document.getElementById("comentario").addEventListener("submit", comentar);
+  }
 
-carregar().catch((erro) => aviso(erro.message));
+  carregar().catch((erro) => aviso(erro.message));
 </script>
 {% endblock %}
