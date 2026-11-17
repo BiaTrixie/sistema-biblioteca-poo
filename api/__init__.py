@@ -12,8 +12,8 @@ app = Flask(
 )
 sistema = Sistema()
 
-from api.rotas import api  # noqa: E402
-from app.paginas import paginas  # noqa: E402
+from api.rotas import api  
+from app.paginas import paginas  
 
 app.register_blueprint(api, url_prefix="/api")
 app.register_blueprint(paginas)
