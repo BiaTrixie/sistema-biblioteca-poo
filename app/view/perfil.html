@@ -2,46 +2,64 @@
 {% block titulo %}Perfil — estante{% endblock %}
 {% block conteudo %}
 <h3 class="rotulo">Configurações do perfil</h3>
-
 <section class="cartao identidade">
-  <span class="avatar grande">{{ usuario.nome[0] }}</span>
+  <span class="avatar grande" id="inicial"></span>
   <div>
-    <h1>{{ usuario.nome }}</h1>
-    <p class="mudo">{{ usuario.email }}</p>
+    <h1 id="nome"></h1>
+    <p class="mudo" id="email"></p>
   </div>
 </section>
-
 <div class="duas-colunas">
   <section class="cartao">
     <h2>Dados da conta</h2>
     <dl class="dados">
-      <dt>Nome</dt><dd>{{ usuario.nome }}</dd>
-      <dt>E-mail</dt><dd>{{ usuario.email }}</dd>
-      <dt>Tipo de conta</dt><dd>{{ 'Administrador' if usuario.admin else 'Leitor' }}</dd>
+      <dt>Nome</dt><dd id="dado-nome"></dd>
+      <dt>E-mail</dt><dd id="dado-email"></dd>
+      <dt>Tipo de conta</dt><dd id="tipo"></dd>
       <dt>Senha</dt><dd>•••••••• <span class="mudo">(guardada protegida, nunca em texto)</span></dd>
     </dl>
   </section>
-
   <section class="cartao">
     <h2>Sua atividade</h2>
     <div class="contadores">
-      <div><b>{{ resumo.total }}</b>na estante</div>
-      <div><b>{{ resumo.lidos }}</b>lidos</div>
-      <div><b>{{ resumo.favoritos }}</b>favoritos</div>
+      <div><b id="total">0</b>na estante</div>
+      <div><b id="lidos">0</b>lidos</div>
+      <div><b id="favoritos">0</b>favoritos</div>
     </div>
     <div class="contadores">
-      <div><b>{{ resumo.quero_ler }}</b>quero ler</div>
-      <div><b>{{ qtd_avaliacoes }}</b>avaliações</div>
-      <div><b>{{ qtd_comentarios }}</b>comentários</div>
+      <div><b id="quero">0</b>quero ler</div>
+      <div><b id="avaliacoes">0</b>avaliações</div>
+      <div><b id="comentarios">0</b>comentários</div>
     </div>
   </section>
 </div>
-
 <section class="cartao sessao">
   <div>
     <h2>Sessão</h2>
     <p class="mudo">Saia da conta para entrar com outra pessoa.</p>
   </div>
-  <form method="post" action="{{ url_for('sair') }}"><button class="botao laranja">Sair da conta</button></form>
+  <button class="botao laranja" id="sair">Sair da conta</button>
 </section>
+{% endblock %}
+{% block script %}
+<script>
+exigirLogin();
+montarTopo("perfil");
+document.getElementById("sair").addEventListener("click", () => sair().catch((erro) => aviso(erro.message)));
+
+api("/perfil").then((dados) => {
+  document.getElementById("inicial").textContent = dados.usuario.nome[0];
+  document.getElementById("nome").textContent = dados.usuario.nome;
+  document.getElementById("email").textContent = dados.usuario.email;
+  document.getElementById("dado-nome").textContent = dados.usuario.nome;
+  document.getElementById("dado-email").textContent = dados.usuario.email;
+  document.getElementById("tipo").textContent = dados.usuario.admin ? "Administrador" : "Leitor";
+  document.getElementById("total").textContent = dados.resumo.total;
+  document.getElementById("lidos").textContent = dados.resumo.lidos;
+  document.getElementById("favoritos").textContent = dados.resumo.favoritos;
+  document.getElementById("quero").textContent = dados.resumo.quero_ler;
+  document.getElementById("avaliacoes").textContent = dados.avaliacoes;
+  document.getElementById("comentarios").textContent = dados.comentarios;
+}).catch((erro) => aviso(erro.message));
+</script>
 {% endblock %}

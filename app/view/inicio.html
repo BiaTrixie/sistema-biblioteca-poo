@@ -1,59 +1,71 @@
 {% extends "base.html" %}
-{% from "_macros.html" import capa, miniatura, estrelas %}
 {% block conteudo %}
 <section class="saudacao">
-  <h1>Olá, {{ usuario.nome }}.</h1>
+  <h1 id="ola">Olá.</h1>
   <p class="mudo">O que vamos ler hoje?</p>
 </section>
-
 <div class="topo-inicio">
-  <article class="cartao destaque">
-    {{ capa(destaque, texto=False) }}
-    <div>
-      <p class="rotulo">Livro do dia</p>
-      <h2>{{ destaque.nome }}</h2>
-      <p class="autora">{{ destaque.autora.nome }}</p>
-      <p class="mudo">{{ destaque.ano }} · {{ destaque.genero.nome }} · {{ destaque.editora.nome }}</p>
-      <p>{{ destaque.sinopse }}</p>
-      <p class="nota">{{ estrelas(media(destaque)) }}</p>
-      <a class="botao verde" href="{{ url_for('livro', id_livro=destaque.id) }}">Ver livro</a>
-      {% if na_estante %}<span class="mudo">Já está na sua estante</span>{% endif %}
-    </div>
-  </article>
-
-  <section class="cartao resumo">
-    <h2>Sua estante</h2>
-    <div class="contadores">
-      <div><b>{{ resumo.total }}</b>total</div>
-      <div><b>{{ resumo.favoritos }}</b>favoritos</div>
-      <div><b>{{ resumo.quero_ler }}</b>quero ler</div>
-    </div>
-    {% if resumo.total == 0 %}<p class="mudo">Sua estante está vazia. Abra um livro e marque o primeiro.</p>{% endif %}
-    <a href="{{ url_for('estante') }}">Abrir minha estante →</a>
-  </section>
+  <article class="cartao destaque" id="destaque"></article>
+  <section class="cartao resumo" id="resumo"></section>
 </div>
-
 <h3 class="rotulo">Populares esta semana</h3>
-<div class="prateleira">
-  {% for livro in populares %}
-  <div>{{ capa(livro) }}<p class="nota">{{ estrelas(media(livro)) }} <span class="mudo">{{ livro.ano }}</span></p></div>
-  {% endfor %}
-</div>
-
+<div class="prateleira" id="populares"></div>
 <section class="cartao">
   <h2>Diário recente</h2>
-  <div class="diario">
-  {% for tipo, item in diario %}
-  <div class="evento">
-    {{ miniatura(item.livro) }}
-    <div>
-      <strong>{{ item.usuario.nome }} {{ tipo }} <a href="{{ url_for('livro', id_livro=item.livro.id) }}">{{ item.livro.nome }}</a>
-        {% if tipo == 'avaliou' %}· <span class="estrelas">{{ '★' * item.nota }}</span>
-        {% else %}· {{ item.numero_likes }} curtidas{% endif %}</strong>
-      <p>{{ item.comentario if tipo == 'avaliou' else item.texto }}</p>
-    </div>
-  </div>
-  {% endfor %}
-  </div>
+  <div class="diario" id="diario"></div>
 </section>
+{% endblock %}
+{% block script %}
+<script>
+exigirLogin();
+montarTopo("inicio");
+
+async function carregar() {
+  const pessoa = usuarioLocal();
+  document.getElementById("ola").textContent = `Olá, ${pessoa.nome}.`;
+  const [destaque, resumo, populares, diario] = await Promise.all([
+    api("/livros/do-dia"),
+    api("/estante/resumo"),
+    api("/livros/populares"),
+    api("/diario"),
+  ]);
+  const estante = await api("/estante");
+  const naEstante = estante.some((item) => item.livro_id === destaque.id);
+  document.getElementById("destaque").innerHTML = `
+    ${htmlCapa(destaque, false)}
+    <div>
+      <p class="rotulo">Livro do dia</p>
+      <h2>${esc(destaque.nome)}</h2>
+      <p class="autora">${esc(destaque.autora)}</p>
+      <p class="mudo">${destaque.ano} · ${esc(destaque.genero)} · ${esc(destaque.editora)}</p>
+      <p>${esc(destaque.sinopse)}</p>
+      <p class="nota">${estrelas(destaque.media)}</p>
+      <a class="botao verde" href="/livro/${destaque.id}">Ver livro</a>
+      ${naEstante ? '<span class="mudo">Já está na sua estante</span>' : ""}
+    </div>`;
+  document.getElementById("resumo").innerHTML = `
+    <h2>Sua estante</h2>
+    <div class="contadores">
+      <div><b>${resumo.total}</b>total</div>
+      <div><b>${resumo.favoritos}</b>favoritos</div>
+      <div><b>${resumo.quero_ler}</b>quero ler</div>
+    </div>
+    ${resumo.total === 0 ? '<p class="mudo">Sua estante está vazia. Abra um livro e marque o primeiro.</p>' : ""}
+    <a href="/estante">Abrir minha estante →</a>`;
+  document.getElementById("populares").innerHTML = populares.map((item) => `
+    <div>${htmlCapa(item)}<p class="nota">${estrelas(item.media)} <span class="mudo">${item.ano}</span></p></div>`).join("");
+  document.getElementById("diario").innerHTML = diario.map((item) => {
+    const extra = item.tipo === "avaliou"
+      ? `· ${estrelas(item.nota)}`
+      : `· ${item.curtidas} curtidas`;
+    const texto = item.tipo === "avaliou" ? item.comentario : item.texto;
+    return `<div class="evento">${htmlMiniatura(item)}<div>
+      <strong>${esc(item.usuario)} ${esc(item.tipo)} <a href="/livro/${item.livro_id}">${esc(item.livro)}</a> ${extra}</strong>
+      <p>${esc(texto)}</p>
+    </div></div>`;
+  }).join("");
+}
+
+carregar().catch((erro) => aviso(erro.message));
+</script>
 {% endblock %}

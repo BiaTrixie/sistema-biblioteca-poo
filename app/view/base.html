@@ -7,20 +7,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  {% if usuario %}
-  <header class="topo">
-    <a class="logo" href="{{ url_for('inicio') }}">e<b>s</b>tante</a>
-    <nav>
-      <a href="{{ url_for('inicio') }}" class="{{ 'ativo' if request.endpoint == 'inicio' }}">Início</a>
-      <a href="{{ url_for('buscar') }}" class="{{ 'ativo' if request.endpoint == 'buscar' }}">Buscar</a>
-      <a href="{{ url_for('estante') }}" class="{{ 'ativo' if request.endpoint == 'estante' }}">Estante</a>
-    </nav>
-    <a class="perfil {{ 'ativo' if request.endpoint == 'perfil' }}" href="{{ url_for('perfil') }}" title="Configurações do perfil"><span class="avatar">{{ usuario.nome[0] }}</span> {{ usuario.nome }}</a>
-  </header>
-  {% endif %}
+  <header class="topo" id="topo" hidden></header>
   <main class="{% block classe %}{% endblock %}">
-    {% block avisos %}{% for mensagem in get_flashed_messages() %}<p class="aviso">{{ mensagem }}</p>{% endfor %}{% endblock %}
+    <p class="aviso" id="aviso" hidden></p>
     {% block conteudo %}{% endblock %}
   </main>
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  {% block script %}{% endblock %}
 </body>
 </html>
