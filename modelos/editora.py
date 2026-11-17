@@ -25,7 +25,7 @@ class Editora:
         return set(self.__autores)
 
     def adicionar_autora(self, autora):
-        self.__autores.append(autora)
+        self.__autores.add(autora)
 
     def remover_autora(self, autora):
         if autora not in self.__autores:
