@@ -2,118 +2,127 @@
 
 Use este guia para entender o sistema e apresentá-lo. Leia de cima para baixo: primeiro a visão geral, depois as pastas, depois um caminho completo, depois arquivo por arquivo.
 
-## Resumo do que foi construído
+## Resumo do que está no código
 
-| Etapa | Resultado |
+| Parte | O que é |
 |---|---|
-| 1. Modelos | `Autora` restaurada, `lido` movido de `Livro` para `Estante`, bug dos likes corrigido, `Avaliacao` e `Comentario` guardam usuário e livro, nota validada de 1 a 5, `Usuario` com hash de senha |
-| 2. Repositório (DAO) | Interface `Repositorio` com duas implementações: memória (testes) e SQLite em `dados/estante.db`. A semente tem 9 livros (3 inventados), 6 contas e a estante da Ana (6 no total, 2 favoritos, 3 quero ler) |
-| 3. Serviços | Conta, catálogo (com o livro do dia), estante e avaliação, mais o padrão Strategy em `servicos/filtros.py` |
-| 4. Flask | As telas (`app/`, `view/`, `static/`) chamam a API em `api/` |
-| 5. Testes | 69 testes: cada serviço roda com os dois repositórios, mais os testes de persistência e de migração do banco |
-| 6. UML | `docs/uml/diagrama_de_classes.md`, em Mermaid: domínio, Strategy, DAO e camadas |
-| 7. Guia | Este arquivo, com as 10 perguntas da revisão respondidas com o nosso código |
+| Modelos | `Usuario`, `Livro`, `Genero`, `Editora`, `Autora`, `Estante`, `Avaliacao` e `Comentario`. A nota vai de 1 a 5. A senha fica só como hash. Lido, favorito e quero ler são da `Estante`, não do `Livro` |
+| Repositórios | Uma classe por entidade, mais `Conexao`, que abre o SQLite `dados/estante.db` |
+| Serviços | Conta, catálogo, estante e avaliação. A busca e o filtro da estante usam Strategy em `servicos/filtros.py` |
+| API | `api/rotas.py` responde JSON em `/api`, com `GET`, `POST` e `PATCH`. O login devolve um token |
+| Páginas | `app/view/*.html` são o desenho. `app/static/js/api.js` chama a API |
+| UML | `docs/uml/diagrama_de_classes.md`: domínio, Strategy, repositórios e camadas |
 
 ## 1. O que é o sistema
 
 O Estante é um diário de livros. Cada pessoa tem uma conta, marca livros como lido, favorito ou quero ler, dá nota de 1 a 5 e comenta.
 
-Pense numa biblioteca de bairro. O acervo é da biblioteca: o livro existe para todo mundo. Mas "já li" e "quero ler" são de cada leitor. Por isso o sistema separa duas coisas: o `Livro` (do acervo) e a `Estante` (a ficha de uma pessoa sobre um livro).
+Pense numa biblioteca de bairro. O acervo é da biblioteca: o livro existe para todo mundo. "Já li" e "quero ler" são de cada leitor. Por isso o sistema separa o `Livro` (o acervo) da `Estante` (a ficha de uma pessoa sobre um livro).
 
-O jeito de usar é o site. As regras ficam nos serviços; as páginas pedem os dados pela API.
+Para subir o site:
 
-| Jeito | Comando | Para que serve |
-|---|---|---|
-| Web (Flask) | `python3 mainFlask.py` e abrir `http://127.0.0.1:5000` | As telas do protótipo, falando com `/api` |
+```text
+python mainFlask.py
+```
 
-Contas de teste (todas com a senha `123456`): `ana@email.com` (estante já cheia), `beto@email.com`, `carla@email.com`, `juliana@email.com`, `lucas@email.com` (Lucas Arruda) e `roberto@email.com` (estante vazia). As contas novas que você criar ficam gravadas no seu computador (seção 8). Testes: `python3 -m unittest discover tests`.
+Abra `http://127.0.0.1:5000`. As telas pedem os dados em `/api`
+
+Se o arquivo `dados/estante.db` já existir no seu computador, ele continua com o acervo e as contas antigas.
 
 ## 2. Mapa das pastas
 
-```
+```text
 modelos/        as classes do domínio (Livro, Usuario, Estante...)
-repositorios/   o acesso aos dados (DAO): a interface, a versão em memória, a versão SQLite e a semente
-servicos/       as regras do sistema (avaliar, buscar, marcar status...)
+repositorios/   Conexao e um repositório por entidade
+servicos/       as regras (avaliar, buscar, marcar status...)
   filtros.py      o padrão Strategy
-app/            as páginas HTML e o JavaScript que chama a API
-api/            os endpoints JSON (GET, POST, PATCH)
-tests/          um arquivo de teste por serviço (cada um roda com os dois repositórios)
-dados/          o banco de cada pessoa, estante.db (criado na 1ª execução, fora do git)
+api/            as rotas JSON e a tradução objeto -> JSON
+app/view/       as páginas HTML
+app/static/     CSS, JavaScript e capas
+dados/          estante.db, fora do git
 docs/uml/       os diagramas de classes
+mainFlask.py    sobe o servidor
 ```
 
-Por que dividir assim: cada pasta responde a uma pergunta só. "O que é um livro?" está em `modelos`. "Onde guardo?" está em `repositorios`. "Qual a regra?" está em `servicos`. "Como mostro?" está em `app` e `api`. Se a regra de nota mudar, você mexe em um lugar só. Isso é o princípio de responsabilidade única (SRP) que o professor cobra.
+Cada pasta responde a uma pergunta. "O que é um livro?" está em `modelos`. "Onde guardo?" está em `repositorios`. "Qual a regra?" está em `servicos`. "Como a pessoa vê e como a API entrega?" está em `app` e `api`. Se a regra da nota mudar, a mudança é no modelo e no serviço.
 
-## 3. Um caminho completo: a Ana avalia O Hobbit
-
-Siga uma ação do clique até o objeto. É a melhor forma de entender como as pastas se conversam.
+## 3. Um caminho completo: avaliar um livro
 
 | Passo | Onde | O que acontece |
 |---|---|---|
-| 1 | `app/view/avaliar.html` | A Ana escolhe 5 estrelas, escreve e clica em "Publicar avaliação". O formulário envia um POST |
-| 2 | `app/rotas.py`, função `avaliar` | Lê `nota` e `texto` do formulário e chama o serviço. Não decide nada |
-| 3 | `servicos/avaliacao_service.py`, `avaliar` | Procura se a Ana já avaliou esse livro. Se sim, atualiza; se não, cria |
-| 4 | `modelos/avaliacao.py` | O `Avaliacao` valida que a nota é de 1 a 5. Se não for, lança `ValueError` |
-| 5 | `repositorios/repositorio_sqlite.py` | O serviço chama `repo.salvar(avaliacao)` e o repositório grava a linha na tabela `avaliacoes` (se a Ana já tinha avaliado, atualiza a mesma linha) |
-| 6 | de volta na rota | Sem erro, redireciona para a página do livro. Com erro, mostra a mensagem na tela (`flash`) |
+| 1 | `app/view/avaliar.html` | A pessoa escolhe a nota, escreve e clica em publicar. O JavaScript manda `POST /api/livros/<id>/avaliacoes` com `{nota, texto}` e o token |
+| 2 | `api/rotas.py`, `avaliar` | Confere o token, lê o JSON e chama o serviço. Não decide a regra |
+| 3 | `servicos/avaliacao_service.py`, `avaliar` | Se essa pessoa já avaliou o livro, atualiza. Se não, cria |
+| 4 | `modelos/avaliacao.py` | O setter de `nota` exige um inteiro de 1 a 5. Fora disso, lança `ValueError` |
+| 5 | `repositorios/avaliacao_repositorio.py` | `salvar` grava na tabela `avaliacoes`. O mesmo id atualiza a linha |
+| 6 | de volta na rota | O JSON da avaliação volta com 201 (nova) ou 200 (substituiu). A página vai para `/livro/<id>`. Se der erro, a mensagem aparece no aviso |
 
-A página não decide a regra. A partir do passo 3, quem valida e grava são o serviço, o modelo e o repositório.
+A página não valida a nota. Quem valida é o modelo; quem decide "uma avaliação por pessoa" é o serviço.
 
 ## 4. Arquivo por arquivo
 
-### modelos/ (o domínio)
+### modelos/
 
 | Arquivo | O que é | Detalhe importante |
 |---|---|---|
-| `usuario.py` | Pessoa com conta | Valida e-mail e senha no construtor. Guarda só o **hash** da senha (`senha_protegida`), nunca a senha; `verificar_senha` compara usando o hash |
-| `livro.py` | Um livro do acervo | Tem gênero, editora e autora. Não sabe se foi lido: isso é da `Estante` |
+| `usuario.py` | Pessoa com conta | Valida e-mail e senha no construtor. Guarda só o hash (`senha_protegida`). `verificar_senha` compara com o hash. `protegida=True` é para quando o hash já veio do banco |
+| `livro.py` | Um livro do acervo | Tem gênero, editora e autora. Não sabe se foi lido |
 | `genero.py`, `editora.py`, `autora.py` | Dados do livro | `Editora` e `Autora` se conhecem (agregação) |
-| `estante.py` | A ficha de uma pessoa sobre um livro | Guarda `lido`, `favorito` e `quer_ler`. Uma ficha por par usuário e livro. **Lido e quero ler não ficam juntos**: marcar um desmarca o outro (a própria classe garante) |
-| `avaliacao.py` | Nota de 1 a 5 de uma pessoa sobre um livro | Valida a nota no construtor e no setter |
-| `comentario.py` | Texto de uma pessoa sobre um livro | Guarda **quem** curtiu (um conjunto de ids), então cada pessoa conta uma vez: `alternar_curtida` curte e, se clicar de novo, desfaz. `substituir` troca o texto e zera as curtidas |
+| `estante.py` | A ficha de uma pessoa sobre um livro | `lido`, `favorito` e `quer_ler`. Lido e quero ler não ficam juntos: marcar um desmarca o outro |
+| `avaliacao.py` | Nota de 1 a 5 | A validação está no construtor e no setter |
+| `comentario.py` | Texto sobre um livro | `curtidas` é um conjunto de ids. `alternar_curtida` curte e, de novo, desfaz. `substituir` troca o texto e zera as curtidas |
 
-Todas usam atributos privados (`self.__nome`) e `@property`. É o encapsulamento: de fora ninguém mexe direto no dado, só pelo caminho que a classe oferece e valida.
+Os atributos importantes são privados (`self.__nota`) e saem por `@property`. Isso é o encapsulamento.
 
 ### repositorios/
 
 | Arquivo | O que faz |
 |---|---|
-| `repositorio.py` | A **interface** (`Repositorio`, classe abstrata): lista o que os serviços podem pedir (`salvar`, `buscar_livro`, `listar_avaliacoes`...) sem dizer como é feito |
-| `repositorio_memoria.py` | Uma implementação que guarda tudo em listas. Os dados somem ao fechar; usada nos testes |
-| `repositorio_sqlite.py` | A outra implementação: guarda num arquivo SQLite (`dados/estante.db`), então os dados sobrevivem |
-| `semente.py` | Cria o conteúdo inicial (livros, contas, estante da Ana, avaliações). Só roda quando o repositório está vazio |
+| `conexao.py` | Abre o SQLite, cria as tabelas na versão 2 e faz a migração específica da versão 1 para a 2. `gravar` insere ou atualiza pelo id. `transacao` agrupa vários comandos |
+| `usuario_repositorio.py` | Salva e busca pessoa, por id ou por e-mail |
+| `livro_repositorio.py` | Livro, gênero, editora e autora. Lê o catálogo uma vez e segura em memória até alguém salvar |
+| `estante_repositorio.py` | A ficha de uma pessoa. Precisa do repositório de livros para remontar o `Livro` |
+| `avaliacao_repositorio.py` | Notas. Remonta usuário e livro ao ler |
+| `comentario_repositorio.py` | Comentário e, na mesma transação, as linhas de `curtidas` |
 
-Por que existe: os serviços só conhecem a interface `Repositorio`, não sabem se os dados estão na memória ou no arquivo. Isso é o **DAO** que o professor ensinou (interface mais uma implementação por tecnologia) e é polimorfismo na prática: trocar de implementação não muda uma linha dos serviços.
+Cada serviço recebe só o repositório da sua entidade. `CatalogoService` é a exceção que recebe dois, livros e avaliações, porque a média não está no livro.
 
-### servicos/ (as regras)
+### servicos/
 
-| Arquivo | Regras que cuida |
+| Arquivo | Regras |
 |---|---|
 | `conta_service.py` | Cadastro (e-mail único) e login |
-| `catalogo_service.py` | Listar, buscar, média das notas, populares e o livro do dia (um por dia, pela data) |
-| `estante_service.py` | Marcar e desmarcar status, listar por filtro, contadores |
-| `avaliacao_service.py` | Avaliar (uma por pessoa), comentar (um por pessoa e livro: o novo sobrescreve), curtir (uma por pessoa), diário recente e a atividade do perfil |
-| `filtros.py` | O padrão Strategy (próxima seção) |
-| `sistema.py` | Abre o banco (`dados/estante.db`) e monta os serviços. A API usa esta classe |
+| `catalogo_service.py` | Listar, buscar, média, populares e o livro do dia (um por dia, pela data) |
+| `estante_service.py` | Liga e desliga status. Sem nenhum status, a ficha sai da estante. Lista por filtro e conta o resumo |
+| `avaliacao_service.py` | Uma avaliação por pessoa. Um comentário por pessoa e livro: o novo substitui. Curtir é um interruptor. Diário recente e a atividade do perfil |
+| `filtros.py` | Strategy, na próxima seção |
+| `sistema.py` | Abre o banco e entrega os repositórios aos serviços. A API usa esta classe |
 
-### app/ e api/ (a fronteira com a pessoa)
+### api/ e app/
 
 | Arquivo | O que faz |
 |---|---|
-| `app/__init__.py` | Reexporta o `app` Flask e o `sistema` |
-| `app/rotas.py` | Uma função por tela ou ação. Lê o formulário, chama o serviço, escolhe a página. `/perfil` mostra os dados da conta e `/sair` (só POST) encerra a sessão |
-| `app/view/*.html` | As telas. `base.html` é o esqueleto (topo e mensagens); as outras o estendem |
-| `app/static/css/style.css` | Tema escuro e verde do protótipo |
-| `app/static/img/capas/N.svg` | Capa do livro de id N, desenhada à mão em SVG (sem texto; o título é escrito pelo HTML por cima). Livro sem arquivo usa `padrao.svg` |
-| `mainFlask.py` | Duas linhas que sobem o servidor |
+| `api/__init__.py` | Cria o Flask, o `Sistema` e registra os dois blueprints |
+| `api/rotas.py` | Um endpoint por ação. `exigir_login` lê o token. Rotas públicas seguem sem conta; as outras respondem 401 |
+| `api/serializacao.py` | Transforma o objeto em dicionário para o JSON |
+| `app/paginas.py` | Entrega o HTML. Não busca livro nem estante |
+| `app/static/js/api.js` | `fetch` em `/api`, guarda `estante_token` no `localStorage` e monta o topo |
+| `app/view/*.html` | As telas. O script de cada uma preenche a página com a resposta da API |
+| `app/static/css/style.css` | O visual |
+| `app/static/img/capas/` | Capa SVG dos livros 1 a 9. O JavaScript pede `/static/img/capas/<id>.svg` |
+| `mainFlask.py` | Sobe o servidor em modo debug |
 
-A rota `exigir_login` (em `rotas.py`) manda qualquer pessoa sem sessão para o login, menos as telas de entrada e cadastro.
+O token fica num dicionário na memória do processo (`TOKENS` em `api/rotas.py`). Reiniciar o Flask pede login de novo. Os dados do banco continuam.
+
+Rotas públicas, sem token: `POST /api/contas`, `POST /api/login`, `GET /api/livros`, `GET /api/livros/<id>`, `GET /api/livros/populares`, `GET /api/livros/do-dia`, `GET /api/generos`, `GET /api/editoras`, avaliações, comentários e `GET /api/diario`.
+
+Rotas da conta, com `Authorization: Bearer <token>`: `GET /api/perfil`, `POST /api/sair`, `GET` e `PATCH` da estante, `POST` de avaliação e de comentário, `PATCH /api/comentarios/<id>` para curtir.
+
+As páginas de início, estante, livro, avaliar e perfil chamam `exigirLogin()` e voltam para `/login` se não houver token. Buscar, entrar e criar conta abrem sem sessão. O catálogo em si é público; a estante é de quem entrou.
 
 ## 5. O padrão de projeto: Strategy
 
-**O problema.** Buscar livros tem várias regras: por texto, por gênero, por editora. A estante também: todos, lidos, favoritos, quero ler. Sem padrão, o serviço viraria uma pilha de `if/elif`.
-
-**A solução.** Cada regra vira uma classe pequena com o mesmo método, `passa(item)`, que responde sim ou não. O serviço monta uma lista de filtros e o `aplicar` deixa passar só quem passa em todos.
+Buscar livros tem várias regras: por texto, por gênero, por editora. A estante também: todos, lidos, favoritos, quero ler. Cada regra é uma classe com `passa(item)`. O serviço monta a lista e `aplicar` deixa passar só quem passa em todas.
 
 ```python
 class Filtro(ABC):
@@ -125,63 +134,56 @@ class FiltroGenero(Filtro):
         return livro.genero.nome.lower() == self.__nome
 ```
 
-**Por que escolhemos este.** Ele aparece em duas telas do protótipo (estante e busca), e acrescentar um filtro novo é criar uma classe, sem mexer no serviço. Observer e Singleton caberiam, mas seriam forçados.
-
-| Parte do Strategy | No nosso código |
+| Parte do Strategy | No código |
 |---|---|
-| Interface da estratégia | `Filtro` (classe abstrata) |
-| Estratégias concretas | `FiltroTexto`, `FiltroGenero`, `FiltroEditora`, `FiltroTodos`, `FiltroLido`, `FiltroFavorito`, `FiltroQueroLer` |
+| Classe abstrata | `Filtro` |
+| Estratégias | `FiltroTexto`, `FiltroGenero`, `FiltroEditora`, `FiltroTodos`, `FiltroLido`, `FiltroFavorito`, `FiltroQueroLer` |
 | Quem usa | `CatalogoService.buscar` e `EstanteService.listar` |
 
-Detalhe honesto: nos filtros do catálogo o item é um `Livro`; nos da estante é um registro `Estante`. A ideia é a mesma, só muda o tipo do item.
+No catálogo o item é um `Livro`. Na estante é um registro `Estante`. O método é o mesmo.
 
 ## 6. UML
 
-Os diagramas estão em `docs/uml/diagrama_de_classes.md`: classes do domínio, o Strategy e as camadas. Lá há uma tabela de leitura das setas.
+Os diagramas estão em `docs/uml/diagrama_de_classes.md`: domínio, Strategy, repositórios e camadas.
 
-## 7. Perguntas que o professor pode fazer (com a resposta do nosso código)
+## 7. Perguntas que o professor pode fazer
 
-| Pergunta da revisão | Resposta usando o Estante |
+| Pergunta | Resposta com este código |
 |---|---|
-| Encapsulamento | `Avaliacao`: o atributo `__nota` é privado; só se muda pelo setter, que valida de 1 a 5 |
-| Interface x classe abstrata | `Filtro` e `Repositorio` são abstratas: só dizem "o que sabem fazer" (`passa`, `salvar`...), cada filha decide o como |
-| SRP e camadas | Modelo guarda dado, serviço aplica regra, rota só liga formulário e serviço |
-| Composição x herança | Herança: filtros herdam de `Filtro`. Composição: o serviço usa filtros, não herda deles |
-| Classe x objeto | `Livro` é a classe; "O Hobbit" é um objeto dela |
-| Agregação x composição | `Editora` tem `Autora` (agregação): apagar a editora não apaga a autora |
-| Navegabilidade | `Estante` conhece `Usuario` e `Livro`, mas o `Livro` não conhece a `Estante` |
-| Polimorfismo | `aplicar` chama `f.passa(item)` sem saber qual filtro é. E os serviços chamam `repo.salvar(x)` sem saber se é memória ou SQLite |
-| Tipos de associação | Estante, Avaliação e Comentário ligam Usuário e Livro (muitos para um) |
-| Acoplamento e coesão | O terminal e o Flask só dependem de `Sistema`; cada serviço cuida de um assunto |
+| Encapsulamento | Em `Avaliacao`, `__nota` é privado. Só muda pelo setter, que exige inteiro de 1 a 5 |
+| Classe abstrata | `Filtro` declara `passa`. Cada filtro concreto implementa a sua regra |
+| SRP e camadas | O modelo guarda e valida o dado. O serviço aplica a regra. A rota só traduz HTTP e JSON. A página só mostra |
+| Composição e herança | Os filtros herdam de `Filtro`. O serviço usa os filtros, não herda deles |
+| Classe e objeto | `Livro` é a classe. Cada linha da tabela `livros` vira um objeto |
+| Agregação | `Editora` conhece `Autora`. Apagar a editora não apaga a autora |
+| Navegabilidade | `Estante` conhece `Usuario` e `Livro`. O `Livro` não conhece a `Estante` |
+| Polimorfismo | `aplicar` chama `f.passa(item)` sem saber qual filtro recebeu |
+| Associação | Estante, avaliação e comentário ligam uma pessoa a um livro |
+| Acoplamento | A rota depende de `Sistema`. Cada serviço depende do repositório da sua entidade |
 
 ## 8. Onde os dados ficam
 
-Os dados ficam num arquivo SQLite no seu computador: `dados/estante.db`. Na primeira execução o arquivo é criado e a semente o enche (livros, contas de teste, a estante da Ana). Daí em diante tudo que você faz é gravado nele.
+O arquivo é `dados/estante.db`. A pasta `dados/` não entra no git. Na primeira abertura, se o arquivo não existe, `Conexao` cria as tabelas e grava `user_version = 2`. Não há carga automática de livros nem de contas.
 
 | Situação | O que acontece |
 |---|---|
-| Você cria a conta `fulano@email.com` | Ela é gravada na tabela `usuarios` e continua lá depois de fechar o programa |
-| Você reinicia o Flask (ou o modo `debug` recarrega ao salvar um arquivo) | Nada se perde: o arquivo continua o mesmo |
-| Outra pessoa roda o projeto no computador dela | Ela cria o próprio `estante.db` e só vê as contas da semente: o arquivo não vai para o git |
-| Você usa o terminal e o Flask | Os dois leem o mesmo arquivo, então veem as mesmas contas |
-| Você quer começar do zero | Feche o programa e apague `dados/estante.db`; ele volta com a semente |
+| `POST /api/contas` com nome, e-mail e senha | A pessoa entra na tabela `usuarios` e continua depois de fechar o programa |
+| O Flask reinicia, inclusive o reload do debug | O banco fica. O token da memória some e a pessoa entra de novo |
+| Outro computador roda o projeto | Cria o próprio `estante.db`, vazio, até alguém cadastrar |
+| Apagar `dados/estante.db` | O próximo start cria as tabelas de novo, sem o acervo anterior |
 
-Como o banco é organizado: uma tabela para cada tipo de objeto (`usuarios`, `livros`, `estantes`, `avaliacoes`, `comentarios`...). As regras importantes também são protegidas pelo próprio banco: e-mail único, uma avaliação por pessoa e por livro, nota de 1 a 5. O código valida primeiro e dá a mensagem; o banco é a segunda trava.
+Tabelas: `usuarios`, `generos`, `editoras`, `autoras`, `editora_autora`, `livros`, `estantes`, `avaliacoes`, `comentarios`, `curtidas`. O banco também segura regras: e-mail único, uma avaliação por pessoa e livro, um comentário por pessoa e livro, nota de 1 a 5. O código valida antes e devolve a mensagem; o banco é a segunda trava.
 
-Dois cuidados que o SQLite exigiu e que valem na apresentação:
+Ao ler, o repositório monta um objeto novo. Duas leituras da mesma pessoa não são o mesmo objeto na memória. Por isso a comparação é pelo `id`.
 
-- **Objeto novo a cada leitura.** Ao ler do banco, `Usuario` e `Livro` são reconstruídos, então dois objetos "iguais" não são o mesmo objeto na memória. Por isso o sistema compara por `id`, nunca por identidade (`is`).
-- **Os testes rodam nos dois repositórios.** Cada teste de serviço executa com `RepositorioMemoria` e com `RepositorioSQLite`; se os dois passam, os serviços de fato não dependem de onde os dados estão.
+A versão do esquema é o `user_version` do SQLite. Versão 0 cria as tabelas. Versão 1 roda `__migrar_da_versao_1`: separa lido de quero ler, recria comentários com uma linha por pessoa e livro, e zera curtidas que eram só um número. Outra versão faz o programa recusar o arquivo e pedir para apagá-lo.
 
-As tabelas têm um número de versão (`user_version`). Ao abrir um arquivo de versão mais antiga, o programa **migra** os dados para o formato novo sem perder contas (a migração da versão 1 para a 2 aplicou as regras de curtida e comentário aos dados que já existiam). Se o arquivo for de uma versão que o código não conhece, o programa recusa e pede para apagar `dados/estante.db`, sem apagar sozinho.
+## 9. Limitações
 
-## 9. Limitações conhecidas
-
-- Os dados são locais (seção 8): dois computadores nunca compartilham contas. Compartilhar exigiria um banco em servidor.
-- A migração do banco existe só da versão 1 para a 2. Nela, as curtidas antigas (que eram só um número, sem saber de quem) foram zeradas. Outras mudanças de tabela exigirão uma nova migração.
-- A senha usa hash, mas as contas da semente têm todas a senha `123456` (e o mesmo hash), só para demonstração.
-- A chave da sessão do Flask está escrita no código. Aceitável num trabalho acadêmico.
-- No protótipo, a busca "fantasia" mostra Circe (Mitologia), mas a busca real só devolve os 2 livros de fantasia. O desenho tinha essa inconsistência.
-- Os livros 7, 8 e 9 (baleias, árvores e cosmos), seus autores e editoras são inventados para a demonstração.
-- Os modelos dos colegas foram alterados (Autora restaurada, `lido` movido para `Estante`, bug dos likes, usuário e livro nas avaliações e comentários). Combinar com o grupo antes de subir.
-- O `Usuario` ganhou hash de senha (`protegida` e `senha_protegida`).
+- O banco é local. Dois computadores não compartilham contas.
+- A migração escrita é só da versão 1 para a 2.
+- Não há endpoint para cadastrar livro. O acervo que aparece hoje já estava no arquivo.
+- O token vive na memória do processo. Reiniciar o servidor desloga todo mundo.
+- As contas antigas de demonstração usam a senha `123456`.
+- A capa é pedida pelo id do livro. Sem o SVG, o cartão fica sem imagem. `padrao.svg` está na pasta, e a página não troca para ele sozinha.
+- Os livros 7, 8 e 9, com autores e editoras inventados, existem só no banco que já estava neste computador.

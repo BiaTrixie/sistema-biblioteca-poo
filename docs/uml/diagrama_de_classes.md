@@ -118,54 +118,59 @@ classDiagram
 
 `<|--` é herança (aqui, realização de uma classe abstrata) e `..>` é dependência: o serviço só usa o filtro durante a chamada, não o guarda.
 
-# DAO (repositórios)
+# Repositórios
+
+Um repositório por entidade, todos compartilhando a mesma `Conexao`. Não há interface única nem versão em memória: o banco é o SQLite.
 
 ```mermaid
 classDiagram
     direction TB
-    class Repositorio {
-        <<interface>>
-        +salvar(objeto)
-        +remover(objeto)
-        +proximo_id(colecao) int
-        +transacao()
-        +buscar_usuario(id) Usuario
-        +listar_livros() list
-        +buscar_registro(usuario, livro) Estante
-        +listar_avaliacoes(livro) list
-        +buscar_comentario_de(usuario, livro) Comentario
-    }
-    class RepositorioMemoria {
-        -dados
-    }
-    class RepositorioSQLite {
+    class Conexao {
         -conexao
-        +fechar()
+        +transacao()
+        +consultar(sql, parametros)
+        +gravar(tabela, valores)
+        +proximo_id(tabela) int
+        +remover(tabela, id)
     }
+    class UsuarioRepositorio
+    class LivroRepositorio
+    class EstanteRepositorio
+    class AvaliacaoRepositorio
+    class ComentarioRepositorio
     class ContaService
     class CatalogoService
     class EstanteService
     class AvaliacaoService
     class Sistema
 
-    Repositorio <|.. RepositorioMemoria
-    Repositorio <|.. RepositorioSQLite
-    ContaService ..> Repositorio : usa
-    CatalogoService ..> Repositorio : usa
-    EstanteService ..> Repositorio : usa
-    AvaliacaoService ..> Repositorio : usa
-    Sistema ..> RepositorioSQLite : cria
+    UsuarioRepositorio --> Conexao
+    LivroRepositorio --> Conexao
+    EstanteRepositorio --> Conexao
+    AvaliacaoRepositorio --> Conexao
+    ComentarioRepositorio --> Conexao
+    ContaService --> UsuarioRepositorio
+    CatalogoService --> LivroRepositorio
+    CatalogoService --> AvaliacaoRepositorio
+    EstanteService --> EstanteRepositorio
+    AvaliacaoService --> AvaliacaoRepositorio
+    AvaliacaoService --> ComentarioRepositorio
+    Sistema --> Conexao : abre
 ```
 
-`<|..` é realização: a classe cumpre o contrato da interface. Os serviços dependem só de `Repositorio`, então trocar a implementação não muda os serviços. Os testes usam as duas implementações.
+`LivroRepositorio` também grava e lê gênero, editora e autora, porque esses dados só existem como parte do catálogo. `CatalogoService` recebe livros e avaliações: a média da nota não está na tabela do livro.
 
 # Camadas
 
 ```mermaid
 flowchart LR
-    V[view: HTML] --> C[controller: rotas Flask ou menu do terminal]
-    C --> S[servicos: regras]
-    S --> R[repositorios: interface Repositorio]
-    R --> M[modelos: classes do domínio]
-    R --> B[(dados/estante.db)]
+    V[app/view: HTML e api.js] --> A[api/rotas: JSON]
+    A --> S[servicos: regras]
+    S --> R[repositorios: um por entidade]
+    R --> C[Conexao]
+    C --> B[(dados/estante.db)]
+    R --> M[modelos]
+    S --> M
 ```
+
+A página não chama o serviço. O JavaScript pede `GET`, `POST` ou `PATCH` em `/api`. A rota traduz o JSON, chama o serviço e devolve JSON. A regra fica no serviço e no modelo.
