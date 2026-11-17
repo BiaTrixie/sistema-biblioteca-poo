@@ -1,34 +1,36 @@
 class Editora:
-    def __init__(self, id: int, nome: str) -> None:
+    def __init__(self, id, nome, autores=()):
         self.__id = id
-        self.__nome = self.__validar_nome(nome)
-        self.__autores: list["Autora"] = []
+        self.__nome = nome
+        self.__autores = set(autores)
 
     @property
-    def id(self) -> int:
+    def id(self):
         return self.__id
 
+    @id.setter
+    def id(self, id):
+        self.__id = id
+
     @property
-    def nome(self) -> str:
+    def nome(self):
         return self.__nome
 
-    @property
-    def autores(self) -> list["Autora"]:
-        return self.__autores
+    @nome.setter
+    def nome(self, nome):
+        self.__nome = nome
 
-    def adicionar_autora(self, autora: "Autora") -> None:
+    @property
+    def autores(self):
+        return set(self.__autores)
+
+    def adicionar_autora(self, autora):
         self.__autores.append(autora)
 
-    def remover_autora(self, autora: "Autora") -> None:
+    def remover_autora(self, autora):
         if autora not in self.__autores:
             raise ValueError("autora não vinculada a esta editora")
         self.__autores.remove(autora)
 
-    def __validar_nome(self, nome: str) -> str:
-        nome_limpo = nome.strip()
-        if not nome_limpo:
-            raise ValueError("nome da editora é obrigatório")
-        return nome_limpo
-
-    def __str__(self) -> str:
+    def __str__(self):
         return f"[{self.__id}] {self.__nome}"

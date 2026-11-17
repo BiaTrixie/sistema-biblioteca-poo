@@ -27,9 +27,17 @@ class Avaliacao:
     def usuario(self):
         return self.__usuario
 
+    @usuario.setter
+    def usuario(self, usuario):
+        self.__usuario = usuario
+
     @property
     def livro(self):
         return self.__livro
+
+    @livro.setter
+    def livro(self, livro):
+        self.__livro = livro
 
     @property
     def comentario(self):

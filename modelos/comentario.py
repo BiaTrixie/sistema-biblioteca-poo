@@ -27,9 +27,17 @@ class Comentario:
     def usuario(self):
         return self.__usuario
 
+    @usuario.setter
+    def usuario(self, usuario):
+        self.__usuario = usuario
+
     @property
     def livro(self):
         return self.__livro
+
+    @livro.setter
+    def livro(self, livro):
+        self.__livro = livro
 
     @property
     def curtidas(self):
@@ -43,14 +51,12 @@ class Comentario:
         return usuario.id in self.__curtidas
 
     def alternar_curtida(self, usuario):
-        """Curte se a pessoa ainda não curtiu; se já tinha curtido, desfaz."""
         if self.curtido_por(usuario):
             self.__curtidas.discard(usuario.id)
         else:
             self.__curtidas.add(usuario.id)
 
     def substituir(self, texto, data):
-        """Um novo comentário no lugar do antigo; as curtidas eram do texto velho e se perdem."""
         self.__texto = texto
         self.__data = data
         self.__curtidas.clear()
