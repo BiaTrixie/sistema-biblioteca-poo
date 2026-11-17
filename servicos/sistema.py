@@ -1,7 +1,12 @@
 import os
 from pathlib import Path
 
-from repositorios.repositorio import RepositorioSQLite
+from repositorios.avaliacao_repositorio import AvaliacaoRepositorio
+from repositorios.comentario_repositorio import ComentarioRepositorio
+from repositorios.conexao import Conexao
+from repositorios.estante_repositorio import EstanteRepositorio
+from repositorios.livro_repositorio import LivroRepositorio
+from repositorios.usuario_repositorio import UsuarioRepositorio
 from servicos.avaliacao_service import AvaliacaoService
 from servicos.catalogo_service import CatalogoService
 from servicos.conta_service import ContaService
@@ -12,12 +17,16 @@ CAMINHO_PADRAO = Path(__file__).resolve().parent.parent / "dados" / "estante.db"
 
 
 class Sistema:
-    """Junta o repositório e os serviços. Terminal e Flask usam esta mesma classe."""
+    """Abre o banco e entrega a cada serviço o repositório da sua entidade."""
 
-    def __init__(self, repo=None):
-        if repo is None:
-            repo = RepositorioSQLite(os.environ.get("ESTANTE_DB", CAMINHO_PADRAO))
-        self.conta = ContaService(repo)
-        self.catalogo = CatalogoService(repo)
-        self.estante = EstanteService(repo)
-        self.avaliacao = AvaliacaoService(repo)
+    def __init__(self, conexao=None):
+        if conexao is None:
+            conexao = Conexao(os.environ.get("ESTANTE_DB", CAMINHO_PADRAO))
+        usuarios = UsuarioRepositorio(conexao)
+        livros = LivroRepositorio(conexao)
+        avaliacoes = AvaliacaoRepositorio(conexao, usuarios, livros)
+        comentarios = ComentarioRepositorio(conexao, usuarios, livros)
+        self.conta = ContaService(usuarios)
+        self.catalogo = CatalogoService(livros, avaliacoes)
+        self.estante = EstanteService(EstanteRepositorio(conexao, livros))
+        self.avaliacao = AvaliacaoService(avaliacoes, comentarios)
