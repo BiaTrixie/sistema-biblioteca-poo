@@ -20,7 +20,7 @@ def dados_das_paginas():
 def capa_url(livro):
     """Endereço da capa do livro (static/img/capas/<id>.svg); sem arquivo, usa a capa padrão."""
     nome = f"img/capas/{livro.id}.svg"
-    if not (Path(app.static_folder) / nome).exists():
+    if not (Path(app.static_folder) / nome).exists(): 
         nome = "img/capas/padrao.svg"
     return url_for("static", filename=nome)
 
