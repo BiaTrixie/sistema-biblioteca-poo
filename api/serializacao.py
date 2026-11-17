@@ -12,7 +12,7 @@ def livro(item, media=None):
         "sinopse": item.sinopse,
         "edicao": item.edicao,
         "editora": item.editora.nome,
-        "autora": item.autora.nome,
+        "autor": item.autor.nome,
         "media": media,
     }
 
@@ -22,7 +22,7 @@ def estante(registro):
         "livro_id": registro.livro.id,
         "livro": registro.livro.nome,
         "genero": registro.livro.genero.nome,
-        "autora": registro.livro.autora.nome,
+        "autor": registro.livro.autor.nome,
         "lido": registro.lido,
         "favorito": registro.favorito,
         "quer_ler": registro.quer_ler,

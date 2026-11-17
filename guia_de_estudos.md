@@ -6,7 +6,7 @@ Use este guia para entender o sistema e apresentá-lo. Leia de cima para baixo: 
 
 | Parte | O que é |
 |---|---|
-| Modelos | `Usuario`, `Livro`, `Genero`, `Editora`, `Autora`, `Estante`, `Avaliacao` e `Comentario`. A nota vai de 1 a 5. A senha fica só como hash. Lido, favorito e quero ler são da `Estante`, não do `Livro` |
+| Modelos | `Usuario`, `Livro`, `Genero`, `Editora`, `Autor`, `Estante`, `Avaliacao` e `Comentario`. A nota vai de 1 a 5. A senha fica só como hash. Lido, favorito e quero ler são da `Estante`, não do `Livro` |
 | Repositórios | Uma classe por entidade, mais `Conexao`, que abre o SQLite `dados/estante.db` |
 | Serviços | Conta, catálogo, estante e avaliação. A busca e o filtro da estante usam Strategy em `servicos/filtros.py` |
 | API | `api/rotas.py` responde JSON em `/api`, com `GET`, `POST` e `PATCH`. O login devolve um token |
@@ -66,8 +66,8 @@ A página não valida a nota. Quem valida é o modelo; quem decide "uma avaliaç
 | Arquivo | O que é | Detalhe importante |
 |---|---|---|
 | `usuario.py` | Pessoa com conta | Valida e-mail e senha no construtor. Guarda só o hash (`senha_protegida`). `verificar_senha` compara com o hash. `protegida=True` é para quando o hash já veio do banco |
-| `livro.py` | Um livro do acervo | Tem gênero, editora e autora. Não sabe se foi lido |
-| `genero.py`, `editora.py`, `autora.py` | Dados do livro | `Editora` e `Autora` se conhecem (agregação) |
+| `livro.py` | Um livro do acervo | Tem gênero, editora e autor. Não sabe se foi lido |
+| `genero.py`, `editora.py`, `autor.py` | Dados do livro | `Editora` e `Autor` se conhecem (agregação) |
 | `estante.py` | A ficha de uma pessoa sobre um livro | `lido`, `favorito` e `quer_ler`. Lido e quero ler não ficam juntos: marcar um desmarca o outro |
 | `avaliacao.py` | Nota de 1 a 5 | A validação está no construtor e no setter |
 | `comentario.py` | Texto sobre um livro | `curtidas` é um conjunto de ids. `alternar_curtida` curte e, de novo, desfaz. `substituir` troca o texto e zera as curtidas |
@@ -78,9 +78,9 @@ Os atributos importantes são privados (`self.__nota`) e saem por `@property`. I
 
 | Arquivo | O que faz |
 |---|---|
-| `conexao.py` | Abre o SQLite, cria as tabelas na versão 2 e faz a migração específica da versão 1 para a 2. `gravar` insere ou atualiza pelo id. `transacao` agrupa vários comandos |
+| `conexao.py` | Abre o SQLite, cria as tabelas na versão 3 e faz as migrações da 1 para a 2 e da 2 para a 3. `gravar` insere ou atualiza pelo id. `transacao` agrupa vários comandos |
 | `usuario_repositorio.py` | Salva e busca pessoa, por id ou por e-mail |
-| `livro_repositorio.py` | Livro, gênero, editora e autora. Lê o catálogo uma vez e segura em memória até alguém salvar |
+| `livro_repositorio.py` | Livro, gênero, editora e autor. Lê o catálogo uma vez e segura em memória até alguém salvar |
 | `estante_repositorio.py` | A ficha de uma pessoa. Precisa do repositório de livros para remontar o `Livro` |
 | `avaliacao_repositorio.py` | Notas. Remonta usuário e livro ao ler |
 | `comentario_repositorio.py` | Comentário e, na mesma transação, as linhas de `curtidas` |
@@ -155,7 +155,7 @@ Os diagramas estão em `docs/uml/diagrama_de_classes.md`: domínio, Strategy, re
 | SRP e camadas | O modelo guarda e valida o dado. O serviço aplica a regra. A rota só traduz HTTP e JSON. A página só mostra |
 | Composição e herança | Os filtros herdam de `Filtro`. O serviço usa os filtros, não herda deles |
 | Classe e objeto | `Livro` é a classe. Cada linha da tabela `livros` vira um objeto |
-| Agregação | `Editora` conhece `Autora`. Apagar a editora não apaga a autora |
+| Agregação | `Editora` conhece `Autor`. Apagar a editora não apaga o autor |
 | Navegabilidade | `Estante` conhece `Usuario` e `Livro`. O `Livro` não conhece a `Estante` |
 | Polimorfismo | `aplicar` chama `f.passa(item)` sem saber qual filtro recebeu |
 | Associação | Estante, avaliação e comentário ligam uma pessoa a um livro |
@@ -163,7 +163,7 @@ Os diagramas estão em `docs/uml/diagrama_de_classes.md`: domínio, Strategy, re
 
 ## 8. Onde os dados ficam
 
-O arquivo é `dados/estante.db`. A pasta `dados/` não entra no git. Na primeira abertura, se o arquivo não existe, `Conexao` cria as tabelas e grava `user_version = 2`. Não há carga automática de livros nem de contas.
+O arquivo é `dados/estante.db`. A pasta `dados/` não entra no git. Na primeira abertura, se o arquivo não existe, `Conexao` cria as tabelas e grava `user_version = 3`. Não há carga automática de livros nem de contas.
 
 | Situação | O que acontece |
 |---|---|
@@ -172,16 +172,16 @@ O arquivo é `dados/estante.db`. A pasta `dados/` não entra no git. Na primeira
 | Outro computador roda o projeto | Cria o próprio `estante.db`, vazio, até alguém cadastrar |
 | Apagar `dados/estante.db` | O próximo start cria as tabelas de novo, sem o acervo anterior |
 
-Tabelas: `usuarios`, `generos`, `editoras`, `autoras`, `editora_autora`, `livros`, `estantes`, `avaliacoes`, `comentarios`, `curtidas`. O banco também segura regras: e-mail único, uma avaliação por pessoa e livro, um comentário por pessoa e livro, nota de 1 a 5. O código valida antes e devolve a mensagem; o banco é a segunda trava.
+Tabelas: `usuarios`, `generos`, `editoras`, `autores`, `editora_autor`, `livros`, `estantes`, `avaliacoes`, `comentarios`, `curtidas`. O banco também segura regras: e-mail único, uma avaliação por pessoa e livro, um comentário por pessoa e livro, nota de 1 a 5. O código valida antes e devolve a mensagem; o banco é a segunda trava.
 
 Ao ler, o repositório monta um objeto novo. Duas leituras da mesma pessoa não são o mesmo objeto na memória. Por isso a comparação é pelo `id`.
 
-A versão do esquema é o `user_version` do SQLite. Versão 0 cria as tabelas. Versão 1 roda `__migrar_da_versao_1`: separa lido de quero ler, recria comentários com uma linha por pessoa e livro, e zera curtidas que eram só um número. Outra versão faz o programa recusar o arquivo e pedir para apagá-lo.
+A versão do esquema é o `user_version` do SQLite. Versão 0 cria as tabelas. Versão 1 roda `__migrar_da_versao_1`: separa lido de quero ler, recria comentários com uma linha por pessoa e livro, e zera curtidas que eram só um número. Versão 2 roda `__migrar_da_versao_2`: `autora` vira `autor` nas tabelas. Outra versão faz o programa recusar o arquivo e pedir para apagá-lo.
 
 ## 9. Limitações
 
 - O banco é local. Dois computadores não compartilham contas.
-- A migração escrita é só da versão 1 para a 2.
+- As migrações escritas são da versão 1 para a 2 e da 2 para a 3.
 - Não há endpoint para cadastrar livro. O acervo que aparece hoje já estava no arquivo.
 - O token vive na memória do processo. Reiniciar o servidor desloga todo mundo.
 - As contas antigas de demonstração usam a senha `123456`.

@@ -3,7 +3,7 @@
 {% block conteudo %}
 <h3 class="rotulo">Catálogo</h3>
 <form class="busca" id="formulario">
-  <input name="q" id="q" placeholder="Título, autora, gênero ou editora">
+  <input name="q" id="q" placeholder="Título, autor, gênero ou editora">
   <select name="genero" id="genero"><option value="">Todos os gêneros</option></select>
   <select name="editora" id="editora"><option value="">Todas as editoras</option></select>
   <button class="botao verde">Buscar</button>
@@ -35,7 +35,7 @@ async function carregar() {
     <a class="linha-livro" href="/livro/${item.id}">
       ${htmlMiniatura(item)}
       <div><strong>${esc(item.nome)}</strong>
-        <p class="mudo">${item.ano} · ${esc(item.genero)} · ${esc(item.editora)} · ${esc(item.autora)}</p>
+        <p class="mudo">${item.ano} · ${esc(item.genero)} · ${esc(item.editora)} · ${esc(item.autor)}</p>
       </div>
       ${estrelas(item.media)}
     </a>`).join("") : '<p class="mudo">Nenhum livro encontrado.</p>';

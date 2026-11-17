@@ -15,7 +15,7 @@ class FiltroTexto(Filtro):
         self.__texto = texto.strip().lower()
 
     def passa(self, livro):
-        campos = [livro.nome, livro.autora.nome, livro.genero.nome, livro.editora.nome]
+        campos = [livro.nome, livro.autor.nome, livro.genero.nome, livro.editora.nome]
         return any(self.__texto in campo.lower() for campo in campos)
 
 

@@ -1,11 +1,11 @@
-from modelos.autora import Autora
+from modelos.autor import Autor
 from modelos.editora import Editora
 from modelos.genero import Genero
 from modelos.livro import Livro
 
 
 class LivroRepositorio:
-    """Livro, gênero, editora e autora. O catálogo é lido uma vez e fica em memória."""
+    """Livro, gênero, editora e autor. O catálogo é lido uma vez e fica em memória."""
 
     def __init__(self, conexao):
         self.__conexao = conexao
@@ -32,17 +32,17 @@ class LivroRepositorio:
         elif isinstance(objeto, Editora):
             with self.__conexao.transacao():
                 self.__conexao.gravar("editoras", {"id": objeto.id, "nome": objeto.nome})
-                for autora in objeto.autores:
+                for autor in objeto.autores:
                     self.__conexao.executar(
-                        "INSERT OR IGNORE INTO editora_autora VALUES (?, ?)", (objeto.id, autora.id)
+                        "INSERT OR IGNORE INTO editora_autor VALUES (?, ?)", (objeto.id, autor.id)
                     )
-        elif isinstance(objeto, Autora):
-            self.__conexao.gravar("autoras", {"id": objeto.id, "nome": objeto.nome})
+        elif isinstance(objeto, Autor):
+            self.__conexao.gravar("autores", {"id": objeto.id, "nome": objeto.nome})
         elif isinstance(objeto, Livro):
             self.__conexao.gravar("livros", {
                 "id": objeto.id, "nome": objeto.nome, "ano": objeto.ano,
                 "genero_id": objeto.genero.id, "sinopse": objeto.sinopse, "edicao": objeto.edicao,
-                "editora_id": objeto.editora.id, "autora_id": objeto.autora.id,
+                "editora_id": objeto.editora.id, "autor_id": objeto.autor.id,
             })
         else:
             raise TypeError("objeto não faz parte do catálogo")
@@ -54,14 +54,14 @@ class LivroRepositorio:
                        for r in self.__conexao.consultar("SELECT * FROM generos ORDER BY id")}
             editoras = {r["id"]: Editora(r["id"], r["nome"])
                         for r in self.__conexao.consultar("SELECT * FROM editoras ORDER BY id")}
-            autoras = {r["id"]: Autora(r["id"], r["nome"])
-                       for r in self.__conexao.consultar("SELECT * FROM autoras ORDER BY id")}
-            for r in self.__conexao.consultar("SELECT * FROM editora_autora"):
-                editoras[r["editora_id"]].adicionar_autora(autoras[r["autora_id"]])
-                autoras[r["autora_id"]].adicionar_editora(editoras[r["editora_id"]])
+            autores = {r["id"]: Autor(r["id"], r["nome"])
+                       for r in self.__conexao.consultar("SELECT * FROM autores ORDER BY id")}
+            for r in self.__conexao.consultar("SELECT * FROM editora_autor"):
+                editoras[r["editora_id"]].adicionar_autor(autores[r["autor_id"]])
+                autores[r["autor_id"]].adicionar_editora(editoras[r["editora_id"]])
             livros = {
                 r["id"]: Livro(r["id"], r["nome"], r["ano"], generos[r["genero_id"]], r["sinopse"],
-                               r["edicao"], editoras[r["editora_id"]], autoras[r["autora_id"]])
+                               r["edicao"], editoras[r["editora_id"]], autores[r["autor_id"]])
                 for r in self.__conexao.consultar("SELECT * FROM livros ORDER BY id")
             }
             self.__catalogo = {"generos": generos, "editoras": editoras, "livros": livros}

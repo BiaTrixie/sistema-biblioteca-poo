@@ -34,7 +34,7 @@ async function carregar() {
     <div><b>${resumo.favoritos}</b>favoritos</div>
     <div><b>${resumo.quero_ler}</b>quero ler</div>`;
   document.getElementById("livros").innerHTML = registros.length ? registros.map((item) => `
-    <div>${htmlCapa({ id: item.livro_id, nome: item.livro, genero: item.genero, autora: item.autora })}
+    <div>${htmlCapa({ id: item.livro_id, nome: item.livro, genero: item.genero, autor: item.autor })}
       <p class="marcas">${marcas(item)}</p></div>`).join("") : '<p class="mudo">Nenhum livro aqui ainda.</p>';
 }
 

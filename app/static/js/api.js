@@ -56,7 +56,7 @@ function capaUrl(id) {
 function htmlCapa(item, comTexto = true) {
   const classe = comTexto ? "capa" : "capa sem-texto";
   const interno = comTexto
-    ? `<small>${esc(item.genero)}</small><strong>${esc(item.nome)}</strong><span>${esc(item.autora)}</span>`
+    ? `<small>${esc(item.genero)}</small><strong>${esc(item.nome)}</strong><span>${esc(item.autor)}</span>`
     : "";
   return `<a class="${classe}" href="/livro/${item.id}" style="--img: url('${capaUrl(item.id)}')">${interno}</a>`;
 }

@@ -24,13 +24,13 @@ class Editora:
     def autores(self):
         return set(self.__autores)
 
-    def adicionar_autora(self, autora):
-        self.__autores.append(autora)
+    def adicionar_autor(self, autor):
+        self.__autores.add(autor)
 
-    def remover_autora(self, autora):
-        if autora not in self.__autores:
-            raise ValueError("autora não vinculada a esta editora")
-        self.__autores.remove(autora)
+    def remover_autor(self, autor):
+        if autor not in self.__autores:
+            raise ValueError("autor não vinculado a esta editora")
+        self.__autores.remove(autor)
 
     def __str__(self):
         return f"[{self.__id}] {self.__nome}"

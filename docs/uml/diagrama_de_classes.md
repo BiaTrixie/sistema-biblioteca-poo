@@ -26,7 +26,7 @@ classDiagram
         -int id
         -str nome
     }
-    class Autora {
+    class Autor {
         -int id
         -str nome
     }
@@ -60,9 +60,9 @@ classDiagram
     }
 
     Livro "*" --> "1" Genero
-    Livro "*" --> "1" Autora
+    Livro "*" --> "1" Autor
     Livro "*" --> "1" Editora
-    Editora "*" o-- "*" Autora : publica
+    Editora "*" o-- "*" Autor : publica
     Estante "*" --> "1" Usuario
     Estante "*" --> "1" Livro
     Avaliacao "*" --> "1" Usuario
@@ -77,7 +77,7 @@ Leitura rápida das setas:
 | Seta | Significa | Exemplo daqui |
 |---|---|---|
 | `-->` associação, com navegabilidade | A classe da ponta sem seta guarda a outra | `Estante` guarda o `Usuario` e o `Livro` |
-| `o--` agregação | Tem um, e a parte sobrevive sem o todo | `Editora` tem `Autora`; apagar a editora não apaga a autora |
+| `o--` agregação | Tem um, e a parte sobrevive sem o todo | `Editora` tem `Autor`; apagar a editora não apaga o autor |
 | `*` e `1` | Multiplicidade | Muitos livros para um gênero |
 
 `Estante` é a classe que resolve "lido, favorito e quero ler são de cada pessoa": uma linha por par usuário e livro.
@@ -158,7 +158,7 @@ classDiagram
     Sistema --> Conexao : abre
 ```
 
-`LivroRepositorio` também grava e lê gênero, editora e autora, porque esses dados só existem como parte do catálogo. `CatalogoService` recebe livros e avaliações: a média da nota não está na tabela do livro.
+`LivroRepositorio` também grava e lê gênero, editora e autor, porque esses dados só existem como parte do catálogo. `CatalogoService` recebe livros e avaliações: a média da nota não está na tabela do livro.
 
 # Camadas
 

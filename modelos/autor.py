@@ -1,4 +1,4 @@
-class Autora:
+class Autor:
     def __init__(self, id, nome, editoras=()):
         self.__id = id
         self.__nome = nome
@@ -29,7 +29,7 @@ class Autora:
 
     def remover_editora(self, editora):
         if editora not in self.__editoras:
-            raise ValueError("editora não vinculada a esta autora")
+            raise ValueError("editora não vinculada a este autor")
         self.__editoras.remove(editora)
 
     def __str__(self):

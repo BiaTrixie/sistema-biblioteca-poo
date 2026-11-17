@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 # Sempre aumentar este número quando as tabelas mudarem e escrever a migração do número anterior.
-VERSAO_DO_ESQUEMA = 2
+VERSAO_DO_ESQUEMA = 3
 
 TABELA_COMENTARIOS = """CREATE TABLE IF NOT EXISTS comentarios (
         id INTEGER PRIMARY KEY, usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
@@ -18,16 +18,16 @@ TABELA_CURTIDAS = """CREATE TABLE IF NOT EXISTS curtidas (
 TABELAS = [
     "CREATE TABLE IF NOT EXISTS generos (id INTEGER PRIMARY KEY, nome TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS editoras (id INTEGER PRIMARY KEY, nome TEXT NOT NULL)",
-    "CREATE TABLE IF NOT EXISTS autoras (id INTEGER PRIMARY KEY, nome TEXT NOT NULL)",
-    """CREATE TABLE IF NOT EXISTS editora_autora (
+    "CREATE TABLE IF NOT EXISTS autores (id INTEGER PRIMARY KEY, nome TEXT NOT NULL)",
+    """CREATE TABLE IF NOT EXISTS editora_autor (
         editora_id INTEGER NOT NULL REFERENCES editoras(id),
-        autora_id INTEGER NOT NULL REFERENCES autoras(id),
-        PRIMARY KEY (editora_id, autora_id))""",
+        autor_id INTEGER NOT NULL REFERENCES autores(id),
+        PRIMARY KEY (editora_id, autor_id))""",
     """CREATE TABLE IF NOT EXISTS livros (
         id INTEGER PRIMARY KEY, nome TEXT NOT NULL, ano INTEGER NOT NULL,
         genero_id INTEGER NOT NULL REFERENCES generos(id), sinopse TEXT NOT NULL,
         edicao TEXT NOT NULL, editora_id INTEGER NOT NULL REFERENCES editoras(id),
-        autora_id INTEGER NOT NULL REFERENCES autoras(id))""",
+        autor_id INTEGER NOT NULL REFERENCES autores(id))""",
     """CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY, nome TEXT NOT NULL, email TEXT NOT NULL UNIQUE,
         senha TEXT NOT NULL, admin INTEGER NOT NULL)""",
@@ -45,7 +45,7 @@ TABELAS = [
 ]
 
 TABELAS_COM_ID = {
-    "usuarios", "generos", "editoras", "autoras", "livros", "estantes", "avaliacoes", "comentarios",
+    "usuarios", "generos", "editoras", "autores", "livros", "estantes", "avaliacoes", "comentarios",
 }
 
 
@@ -129,6 +129,9 @@ class Conexao:
                 self.__conexao.execute(f"PRAGMA user_version = {VERSAO_DO_ESQUEMA}")
             elif versao == 1:
                 self.__migrar_da_versao_1()
+                self.__migrar_da_versao_2()
+            elif versao == 2:
+                self.__migrar_da_versao_2()
             elif versao != VERSAO_DO_ESQUEMA:
                 raise RuntimeError(
                     f"O banco {self.__caminho} é de uma versão antiga. "
@@ -146,4 +149,13 @@ class Conexao:
                     FROM comentarios_v1
                     WHERE id IN (SELECT MAX(id) FROM comentarios_v1 GROUP BY usuario_id, livro_id)""")
         executar("DROP TABLE comentarios_v1")
+        executar("PRAGMA user_version = 2")
+
+    def __migrar_da_versao_2(self):
+        """Versão 2 para 3: autora vira autor, nome genérico, sem perder o catálogo."""
+        executar = self.__conexao.execute
+        executar("ALTER TABLE autoras RENAME TO autores")
+        executar("ALTER TABLE editora_autora RENAME TO editora_autor")
+        executar("ALTER TABLE editora_autor RENAME COLUMN autora_id TO autor_id")
+        executar("ALTER TABLE livros RENAME COLUMN autora_id TO autor_id")
         executar(f"PRAGMA user_version = {VERSAO_DO_ESQUEMA}")

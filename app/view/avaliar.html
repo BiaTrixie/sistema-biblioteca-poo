@@ -25,7 +25,7 @@ async function carregar() {
   const notaAtual = minha ? minha.nota : 5;
   document.title = "Avaliar " + item.nome + " — estante";
   document.getElementById("nome").textContent = item.nome;
-  document.getElementById("ficha").textContent = `${item.autora} · ${item.ano} · ${item.genero}`;
+  document.getElementById("ficha").textContent = `${item.autor} · ${item.ano} · ${item.genero}`;
   document.getElementById("texto").value = minha ? minha.comentario : "";
   document.getElementById("notas").innerHTML = [1, 2, 3, 4, 5].map((n) =>
     `<label><input type="radio" name="nota" value="${n}" ${n === notaAtual ? "checked" : ""}>${n} ★</label>`).join("");
