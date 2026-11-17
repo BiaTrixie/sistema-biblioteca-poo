@@ -4,34 +4,38 @@
 <h3 class="rotulo">Catálogo</h3>
 <form class="busca" id="formulario">
   <input name="q" id="q" placeholder="Título, autor, gênero ou editora">
-  <select name="genero" id="genero"><option value="">Todos os gêneros</option></select>
-  <select name="editora" id="editora"><option value="">Todas as editoras</option></select>
+  <select name="genero" id="genero">
+    <option value="">Todos os gêneros</option>
+  </select>
+  <select name="editora" id="editora">
+    <option value="">Todas as editoras</option>
+  </select>
   <button class="botao verde">Buscar</button>
 </form>
 <div id="resultados"></div>
 {% endblock %}
 {% block script %}
 <script>
-montarTopo("buscar");
-const params = new URLSearchParams(location.search);
+  montarTopo("buscar");
+  const params = new URLSearchParams(location.search);
 
-function opcoes(select, nomes, escolhido) {
-  select.innerHTML = select.innerHTML + nomes.map((nome) =>
-    `<option ${nome === escolhido ? "selected" : ""}>${esc(nome)}</option>`).join("");
-}
+  function opcoes(select, nomes, escolhido) {
+    select.innerHTML = select.innerHTML + nomes.map((nome) =>
+      `<option ${nome === escolhido ? "selected" : ""}>${esc(nome)}</option>`).join("");
+  }
 
-async function carregar() {
-  document.getElementById("q").value = params.get("q") || "";
-  const [generos, editoras] = await Promise.all([api("/generos", { publico: true }), api("/editoras", { publico: true })]);
-  opcoes(document.getElementById("genero"), generos, params.get("genero") || "");
-  opcoes(document.getElementById("editora"), editoras, params.get("editora") || "");
-  const consulta = new URLSearchParams({
-    q: params.get("q") || "",
-    genero: params.get("genero") || "",
-    editora: params.get("editora") || "",
-  });
-  const livros = await api("/livros?" + consulta, { publico: true });
-  document.getElementById("resultados").innerHTML = livros.length ? livros.map((item) => `
+  async function carregar() {
+    document.getElementById("q").value = params.get("q") || "";
+    const [generos, editoras] = await Promise.all([api("/generos", { publico: true }), api("/editoras", { publico: true })]);
+    opcoes(document.getElementById("genero"), generos, params.get("genero") || "");
+    opcoes(document.getElementById("editora"), editoras, params.get("editora") || "");
+    const consulta = new URLSearchParams({
+      q: params.get("q") || "",
+      genero: params.get("genero") || "",
+      editora: params.get("editora") || "",
+    });
+    const livros = await api("/livros?" + consulta, { publico: true });
+    document.getElementById("resultados").innerHTML = livros.length ? livros.map((item) => `
     <a class="linha-livro" href="/livro/${item.id}">
       ${htmlMiniatura(item)}
       <div><strong>${esc(item.nome)}</strong>
@@ -39,14 +43,14 @@ async function carregar() {
       </div>
       ${estrelas(item.media)}
     </a>`).join("") : '<p class="mudo">Nenhum livro encontrado.</p>';
-}
+  }
 
-document.getElementById("formulario").addEventListener("submit", (evento) => {
-  evento.preventDefault();
-  const dados = new FormData(evento.target);
-  location.search = new URLSearchParams(dados).toString();
-});
+  document.getElementById("formulario").addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    const dados = new FormData(evento.target);
+    location.search = new URLSearchParams(dados).toString();
+  });
 
-carregar().catch((erro) => aviso(erro.message));
+  carregar().catch((erro) => aviso(erro.message));
 </script>
 {% endblock %}
