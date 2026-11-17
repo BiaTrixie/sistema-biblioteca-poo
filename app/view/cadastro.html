@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block titulo %}Criar conta — estante{% endblock %}
 {% block classe %}cheio{% endblock %}
-{% block avisos %}{% endblock %}
 {% block conteudo %}
 <div class="entrada">
   <section class="apresentacao">
@@ -9,14 +8,28 @@
     <h1>Comece a sua estante.</h1>
     <p>Crie a conta e marque o primeiro livro.</p>
   </section>
-  <form class="formulario" method="post">
+  <form class="formulario" id="formulario">
     <h2>Criar conta</h2>
-    {% for mensagem in get_flashed_messages() %}<p class="aviso">{{ mensagem }}</p>{% endfor %}
     <label>Nome <input name="nome" required></label>
     <label>E-mail <input type="email" name="email" required></label>
     <label>Senha <input type="password" name="senha" required></label>
     <button class="botao verde">Criar conta</button>
-    <a class="centro" href="{{ url_for('login') }}">Já tenho conta</a>
+    <a class="centro" href="/login">Já tenho conta</a>
   </form>
 </div>
+{% endblock %}
+{% block script %}
+<script>
+document.getElementById("formulario").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  const dados = Object.fromEntries(new FormData(evento.target));
+  try {
+    await api("/contas", { method: "POST", json: dados, publico: true });
+    guardarSessao(await api("/login", { method: "POST", json: dados, publico: true }));
+    location.href = "/";
+  } catch (erro) {
+    aviso(erro.message);
+  }
+});
+</script>
 {% endblock %}

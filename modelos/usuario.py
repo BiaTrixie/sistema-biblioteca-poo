@@ -2,62 +2,66 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class Usuario:
-    def __init__(
-        self,
-        id: int,
-        nome: str,
-        email: str,
-        senha: str,
-        admin: bool = False,
-        senha_protegida: bool = False,
-    ) -> None:
-        self.__id = self.__validar_id(id)
-        self.__nome = self.__validar_texto(nome, "nome de usuário é obrigatório")
-        self.__email = self.__validar_email(email)
+    def __init__(self, id, nome, email, senha, admin: bool = False, protegida: bool = False,):
+        self.__id = id
+        self.__nome = nome
+        self.__email = email
         senha = self.__validar_texto(senha, "senha é obrigatória")
-        # senha_protegida=True: a senha já veio como hash (lida do banco), então não refaz o hash
-        self.__senha = senha if senha_protegida else generate_password_hash(senha)
+        # protegida=True: a senha já veio como hash (lida do banco), então não refaz o hash
+        self.__senha = senha if protegida else generate_password_hash(senha)
         self.__admin = self.__validar_admin(admin)
 
     @property
-    def id(self) -> int:
+    def id(self):
         return self.__id
 
+    @id.setter
+    def id(self, id):
+        self.__id = id
+
     @property
-    def nome(self) -> str:
+    def nome(self):
         return self.__nome
 
+    @nome.setter
+    def nome(self, nome):
+        self.__nome = nome
+
     @property
-    def email(self) -> str:
+    def email(self):
         return self.__email
 
-    @property
-    def admin(self) -> bool:
-        return self.__admin
+    @email.setter
+    def email(self, email):
+        self.__email = email
 
     @property
-    def senha_protegida(self) -> str:
+    def admin(self):
+        return self.__admin
+
+    @admin.setter
+    def admin(self, admin):
+        self.__admin = admin
+
+    @property
+    def senha_protegida(self):
         """O hash da senha, que é o que se grava no banco. A senha em si ninguém lê."""
         return self.__senha
 
-    def atualizar_nome(self, nome: str) -> None:
+    def atualizar_nome(self, nome):
         self.__nome = self.__validar_texto(nome, "nome de usuário é obrigatório")
 
-    def atualizar_email(self, email: str) -> None:
+    def atualizar_email(self, email):
         self.__email = self.__validar_email(email)
 
-    def verificar_senha(self, senha: str) -> bool:
+    def verificar_senha(self, senha):
         return check_password_hash(self.__senha, senha)
 
-    def alterar_senha(self, senha_atual: str, senha_nova: str) -> None:
+    def alterar_senha(self, senha_atual, senha_nova):
         if not self.verificar_senha(senha_atual):
             raise ValueError("senha atual incorreta")
         self.__senha = generate_password_hash(self.__validar_texto(senha_nova, "senha é obrigatória"))
 
-    def __validar_id(self, id: int) -> int:
-        if isinstance(id, bool) or not isinstance(id, int) or id < 1:
-            raise ValueError("id inválido")
-        return id
 
     def __validar_texto(self, valor: str, mensagem: str) -> str:
         if not isinstance(valor, str):
