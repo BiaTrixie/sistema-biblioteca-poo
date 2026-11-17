@@ -8,8 +8,7 @@ class Filtro(ABC):
     def passa(self, item) -> bool:
         ...
 
-
-# --- filtros do catálogo: o item é um Livro ---
+#filtros do catálogo: o item é um Livro
 
 class FiltroTexto(Filtro):
     def __init__(self, texto):
@@ -36,7 +35,7 @@ class FiltroEditora(Filtro):
         return livro.editora.nome.lower() == self.__nome
 
 
-# --- filtros da estante: o item é um registro Estante ---
+#filtros da estante: o item é um registro Estante
 
 class FiltroTodos(Filtro):
     def passa(self, registro):

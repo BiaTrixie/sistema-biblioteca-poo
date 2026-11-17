@@ -9,11 +9,10 @@ Use este guia para entender o sistema e apresentá-lo. Leia de cima para baixo: 
 | 1. Modelos | `Autora` restaurada, `lido` movido de `Livro` para `Estante`, bug dos likes corrigido, `Avaliacao` e `Comentario` guardam usuário e livro, nota validada de 1 a 5, `Usuario` com hash de senha |
 | 2. Repositório (DAO) | Interface `Repositorio` com duas implementações: memória (testes) e SQLite em `dados/estante.db`. A semente tem 9 livros (3 inventados), 6 contas e a estante da Ana (6 no total, 2 favoritos, 3 quero ler) |
 | 3. Serviços | Conta, catálogo (com o livro do dia), estante e avaliação, mais o padrão Strategy em `servicos/filtros.py` |
-| 4. Terminal | `python3 main.py` percorre o roteiro completo |
-| 5. Flask | As 6 telas no formato do professor (`app/`, `view/`, `static/`), com capas em SVG, mais a tela de perfil com a opção de sair |
-| 6. Testes | 69 testes: cada serviço roda com os dois repositórios, mais os testes de persistência e de migração do banco |
-| 7. UML | `docs/uml/diagrama_de_classes.md`, em Mermaid: domínio, Strategy, DAO e camadas |
-| 8. Guia | Este arquivo, com as 10 perguntas da revisão respondidas com o nosso código |
+| 4. Flask | As telas (`app/`, `view/`, `static/`) chamam a API em `api/` |
+| 5. Testes | 69 testes: cada serviço roda com os dois repositórios, mais os testes de persistência e de migração do banco |
+| 6. UML | `docs/uml/diagrama_de_classes.md`, em Mermaid: domínio, Strategy, DAO e camadas |
+| 7. Guia | Este arquivo, com as 10 perguntas da revisão respondidas com o nosso código |
 
 ## 1. O que é o sistema
 
@@ -21,12 +20,11 @@ O Estante é um diário de livros. Cada pessoa tem uma conta, marca livros como 
 
 Pense numa biblioteca de bairro. O acervo é da biblioteca: o livro existe para todo mundo. Mas "já li" e "quero ler" são de cada leitor. Por isso o sistema separa duas coisas: o `Livro` (do acervo) e a `Estante` (a ficha de uma pessoa sobre um livro).
 
-Dois jeitos de usar, com as mesmas regras por baixo:
+O jeito de usar é o site. As regras ficam nos serviços; as páginas pedem os dados pela API.
 
 | Jeito | Comando | Para que serve |
 |---|---|---|
-| Terminal | `python3 main.py` | Roteiro completo em menu |
-| Web (Flask) | `python3 mainFlask.py` e abrir `http://127.0.0.1:5000` | As 6 telas do protótipo |
+| Web (Flask) | `python3 mainFlask.py` e abrir `http://127.0.0.1:5000` | As telas do protótipo, falando com `/api` |
 
 Contas de teste (todas com a senha `123456`): `ana@email.com` (estante já cheia), `beto@email.com`, `carla@email.com`, `juliana@email.com`, `lucas@email.com` (Lucas Arruda) e `roberto@email.com` (estante vazia). As contas novas que você criar ficam gravadas no seu computador (seção 8). Testes: `python3 -m unittest discover tests`.
 
@@ -37,14 +35,14 @@ modelos/        as classes do domínio (Livro, Usuario, Estante...)
 repositorios/   o acesso aos dados (DAO): a interface, a versão em memória, a versão SQLite e a semente
 servicos/       as regras do sistema (avaliar, buscar, marcar status...)
   filtros.py      o padrão Strategy
-menus/          o terminal (só pergunta e mostra)
-app/            o Flask: rotas.py (controller), view/ (HTML), static/ (CSS)
+app/            as páginas HTML e o JavaScript que chama a API
+api/            os endpoints JSON (GET, POST, PATCH)
 tests/          um arquivo de teste por serviço (cada um roda com os dois repositórios)
 dados/          o banco de cada pessoa, estante.db (criado na 1ª execução, fora do git)
 docs/uml/       os diagramas de classes
 ```
 
-Por que dividir assim: cada pasta responde a uma pergunta só. "O que é um livro?" está em `modelos`. "Onde guardo?" está em `repositorios`. "Qual a regra?" está em `servicos`. "Como mostro?" está em `menus` e `app`. Se a regra de nota mudar, você mexe em um lugar só. Isso é o princípio de responsabilidade única (SRP) que o professor cobra.
+Por que dividir assim: cada pasta responde a uma pergunta só. "O que é um livro?" está em `modelos`. "Onde guardo?" está em `repositorios`. "Qual a regra?" está em `servicos`. "Como mostro?" está em `app` e `api`. Se a regra de nota mudar, você mexe em um lugar só. Isso é o princípio de responsabilidade única (SRP) que o professor cobra.
 
 ## 3. Um caminho completo: a Ana avalia O Hobbit
 
@@ -59,7 +57,7 @@ Siga uma ação do clique até o objeto. É a melhor forma de entender como as p
 | 5 | `repositorios/repositorio_sqlite.py` | O serviço chama `repo.salvar(avaliacao)` e o repositório grava a linha na tabela `avaliacoes` (se a Ana já tinha avaliado, atualiza a mesma linha) |
 | 6 | de volta na rota | Sem erro, redireciona para a página do livro. Com erro, mostra a mensagem na tela (`flash`) |
 
-O terminal faz o mesmo caminho a partir do passo 3. O passo 3 em diante é idêntico nos dois, e é por isso que `menus/` e `app/` não têm regra de negócio.
+A página não decide a regra. A partir do passo 3, quem valida e grava são o serviço, o modelo e o repositório.
 
 ## 4. Arquivo por arquivo
 
@@ -96,14 +94,13 @@ Por que existe: os serviços só conhecem a interface `Repositorio`, não sabem 
 | `estante_service.py` | Marcar e desmarcar status, listar por filtro, contadores |
 | `avaliacao_service.py` | Avaliar (uma por pessoa), comentar (um por pessoa e livro: o novo sobrescreve), curtir (uma por pessoa), diário recente e a atividade do perfil |
 | `filtros.py` | O padrão Strategy (próxima seção) |
-| `sistema.py` | Abre o banco (`dados/estante.db`), enche com a semente no primeiro uso e monta os serviços. Terminal e Flask usam esta classe |
+| `sistema.py` | Abre o banco (`dados/estante.db`) e monta os serviços. A API usa esta classe |
 
-### menus/ e app/ (a fronteira com a pessoa)
+### app/ e api/ (a fronteira com a pessoa)
 
 | Arquivo | O que faz |
 |---|---|
-| `menus/menu_principal.py` | Menu de terminal: pergunta, chama o serviço, imprime. Tem "Meu perfil", onde também dá para sair da conta |
-| `app/__init__.py` | Cria o `app` Flask. `template_folder="view"` é como no exemplo do professor |
+| `app/__init__.py` | Reexporta o `app` Flask e o `sistema` |
 | `app/rotas.py` | Uma função por tela ou ação. Lê o formulário, chama o serviço, escolhe a página. `/perfil` mostra os dados da conta e `/sair` (só POST) encerra a sessão |
 | `app/view/*.html` | As telas. `base.html` é o esqueleto (topo e mensagens); as outras o estendem |
 | `app/static/css/style.css` | Tema escuro e verde do protótipo |
